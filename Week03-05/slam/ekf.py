@@ -1,3 +1,4 @@
+from tkinter import Y
 import numpy as np
 from mapping_utils import MappingUtils
 import cv2
@@ -86,11 +87,21 @@ class EKF:
 
     # the prediction step of EKF
     def predict(self, raw_drive_meas):
+        self.robot.drive(raw_drive_meas)
+        self.set_state_vector(self.robot.state)
 
         F = self.state_transition(raw_drive_meas)
         x = self.get_state_vector()
+        
 
         # TODO: add your codes here to compute the predicted x
+       
+        Q = self.robot.covariance_drive(raw_drive_meas)
+        #print(self.P.shape, F.shape, Q.shape)
+        self.P = F @ self.P @ F.T + Q
+
+
+
 
     # the update step of EKF
     def update(self, measurements):
@@ -115,6 +126,21 @@ class EKF:
         x = self.get_state_vector()
 
         # TODO: add your codes here to compute the updated x
+        S = H @ self.P @ H.T + R
+        K = self.P @ H.T @ np.linalg.inv(S)
+        y = z - z_hat
+        x = x + K @ y
+
+        
+        self.set_state_vector(x)
+       
+        
+        self.P = (np.eye(self.P.shape[0]) - K @ H) @ self.P
+
+
+
+
+
 
 
     def state_transition(self, raw_drive_meas):
