@@ -97,10 +97,10 @@ class EKF:
         # TODO: add your codes here to compute the predicted x
        
         Q = self.predict_covariance(raw_drive_meas)
-        print(self.P.shape, F.shape, Q.shape)
+        #print(self.P.shape, F.shape, Q.shape)
         self.P = F @ self.P @ F.T + Q
 
-        #self.set_state_vector(x)
+        
 
 
 
@@ -134,15 +134,17 @@ class EKF:
         x = x + K @ y
 
         self.set_state_vector(x)
+       # print(self.get_state_vector().shape)
+        #print(self.get_state_vector()[0:3,:])
 
         
-        print(S.shape, K.shape, H.shape, R.shape)
-        print(f'P Shape: {self.P.shape}')
+        #print(S.shape, K.shape, H.shape, R.shape)
+        #print(f'P Shape: {self.P.shape}')
        
         
         self.P = (np.eye(x.shape[0]) - K @ H) @ self.P
        
-        print(f'P Shape after: {self.P.shape}')
+        #print(f'P Shape after: {self.P.shape}')
 
 
 
@@ -156,8 +158,8 @@ class EKF:
     
     def predict_covariance(self, raw_drive_meas):
         n = self.number_landmarks()*2 + 3
-        print (f'n: {n}')
-        print (f'Marker shape {self.markers.shape}')
+       # print (f'n: {n}')
+       # print (f'Marker shape {self.markers.shape}')
         Q = np.zeros((n,n))
         Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.01*np.eye(3)
         return Q
