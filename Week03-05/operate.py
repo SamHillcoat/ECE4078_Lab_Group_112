@@ -79,7 +79,7 @@ class Operate:
         if not self.data is None:
             self.data.write_keyboard(lv, rv)
         dt = time.time() - self.control_clock
-        drive_meas = measure.Drive(lv, rv, dt,0.6,0.6) # Change left and right covariance to 0.5
+        drive_meas = measure.Drive(lv, rv, dt,0.4,0.4) # Change left and right covariance to 0.5
         self.control_clock = time.time()
         return drive_meas
     # camera control
