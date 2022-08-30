@@ -137,16 +137,26 @@ class Operate:
             ############### add your codes below ###############
             # drive forward
             if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-                pass # TODO: replace with your code to make the robot drive forward
+                self.command['motion'] = [1, 0] # TODO: replace with your code to make the robot drive forward
             # drive backward
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-                pass # TODO: replace with your code to make the robot drive backward
+                self.command['motion'] = [-1, 0] # TODO: replace with your code to make the robot drive backward
             # turn left
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
-                pass # TODO: replace with your code to make the robot turn left
-            # drive right
+                self.command['motion'] = [0, 5] # TODO: replace with your code to make the robot turn left
+            # drive left
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_a:
+                self.command['motion'] = [1, 1]
+            # turn right
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-                pass # TODO: replace with your code to make the robot turn right
+                self.command['motion'] = [0, -5] # TODO: replace with your code to make the robot turn right
+            # drive right
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_d:
+                self.command['motion'] = [1, -1]
+
+            # only mvoe when key is cont pressed
+            elif event.type == pygame.KEYUP and (event.key == pygame.K_UP or event.key == pygame.K_DOWN or event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT):
+                self.command['motion'] = [0, 0]
             ####################################################
             # stop
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
@@ -215,7 +225,6 @@ if __name__ == "__main__":
         # visualise
         operate.draw(canvas)
         pygame.display.update()
-
 
 
 
