@@ -79,7 +79,7 @@ class Operate:
         if not self.data is None:
             self.data.write_keyboard(lv, rv)
         dt = time.time() - self.control_clock
-        drive_meas = measure.Drive(lv, rv, dt,0.5,0.5) # Change left and right covariance to 0.5
+        drive_meas = measure.Drive(lv, rv, dt,0.6,0.6) # Change left and right covariance to 0.5
         self.control_clock = time.time()
         return drive_meas
     # camera control
@@ -90,7 +90,19 @@ class Operate:
 
     # SLAM with ARUCO markers       
     def update_slam(self, drive_meas):
-        lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img)
+        #print(f'State: {self.ekf.robot.state[:2, 0].shape}')
+
+        # If the robot is in the inital state [0,0] then the we pass that to the marker function to reduce covariacne for markers seen from this state
+        if (np.allclose(self.ekf.robot.state[:3,0],np.zeros((3,)), atol=0.0005) ):
+            print('init state')
+            lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,init_pos=True)
+        elif ((np.allclose(self.ekf.robot.state[:2,0],np.zeros((2,)), atol=0.005) )):
+            print('init spin state')
+            lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,init_pos=False,init_spin=True)
+        else:
+            lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img)
+
+       
         if self.request_recover_robot:
             is_success = self.ekf.recover_from_pause(lms)
             if is_success:

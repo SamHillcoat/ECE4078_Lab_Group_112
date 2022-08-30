@@ -15,7 +15,7 @@ class aruco_detector:
         self.aruco_params = cv2.aruco.DetectorParameters_create()
         self.aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
     
-    def detect_marker_positions(self, img):
+    def detect_marker_positions(self, img,init_pos = False, init_spin=False):
         # Perform detection
         corners, ids, rejected = cv2.aruco.detectMarkers(
             img, self.aruco_dict, parameters=self.aruco_params)
@@ -41,7 +41,15 @@ class aruco_detector:
             lm_bff2d = np.block([[lm_tvecs[2,:]],[-lm_tvecs[0,:]]])
             lm_bff2d = np.mean(lm_bff2d, axis=1).reshape(-1,1)
 
-            lm_measurement = measure.Marker(lm_bff2d, idi)
+            if (init_pos): # if the robot is in the intial postion (not moved) we are very certain of its location
+                lm_measurement = measure.Marker(lm_bff2d, idi, covariance=0.00001*np.eye(2))
+                print('low cov marker')
+            elif (init_spin): # if the robot is in the intial postion but has spun we are very certain of its location (but a bit less)
+                lm_measurement = measure.Marker(lm_bff2d, idi, covariance=0.005*np.eye(2))
+                print('low cov spin marker')
+            else:
+                lm_measurement = measure.Marker(lm_bff2d, idi)
+
             measurements.append(lm_measurement)
         
         # Draw markers on image copy
