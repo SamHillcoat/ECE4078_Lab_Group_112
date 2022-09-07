@@ -1,6 +1,8 @@
 import cv2
 import cvzone
 import numpy as np
+import os 
+import shutil
 
 from os import walk
 
@@ -13,6 +15,12 @@ def generate_images(num_images, num_bg, num_combo):
     output:     path: generated_images/
                 containing num_images * num_bg * num_combo images
     '''
+
+    # create output directory, if it exists then wipe it
+    dir = 'generated_images'
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+    os.makedirs(dir)
 
     # get list of folders of fruit
     fruit_dirs = []
@@ -99,6 +107,6 @@ def generate_images(num_images, num_bg, num_combo):
 if __name__ == '__main__':
 
     num_images = 10
-    num_combos = 3
+    num_combos = 10
     num_bg = 5
     generate_images(num_images, num_bg, num_combos)
