@@ -1,20 +1,45 @@
 import cv2
 import cvzone
 import numpy as np
-import os 
 import shutil
 
+import os
 from os import walk
+
+import re
 
 def generate_images(num_images, num_bg, num_combo):
     '''
     params:     num_images, number of images to generate from per fruit
                 num_bg, number of backgrounds to generate images with
-                num_combo, number of images to generate with two fruits
+                num_combo, number of images to generate with two or three fruits
 
     output:     path: generated_images/
-                containing num_images * num_bg * num_combo images
+                containing generated images and associated YOLO formatted label files
+
+    YOLO Format:
+        - one row per object
+        - Each row is class x_center y_center width height format.
+        - Box coordinates must be in normalized xywh format (from 0 - 1). 
+            If your boxes are in pixels, divide x_center and width by image width, and y_center and height by image height.
+        - Class numbers are zero-indexed (start from 0).
+
+    Label Definition:
+    0 - Apple
+    1 - Lemon
+    2 - Orange
+    3 - Pear
+    4 - Strawberry
     '''
+
+    # create dictionary of labels
+    label_dict = {
+        'apple' : '0',
+        'lemon' : '1',
+        'orange' : '2',
+        'pear' : '3',
+        'strawberry' : '4'
+    }
 
     # create output directory, if it exists then wipe it
     dir = 'generated_images'
@@ -77,36 +102,90 @@ def generate_images(num_images, num_bg, num_combo):
                     fruit_h2, fruit_w2 = img_fruit_2.shape[0:2]
                     fruit2 = fruit_2.split('.')[0]
 
-                    # iterate through each background
-                    for bg in bg_samples:
+                    # generate list of third fruits
+                    for fruit_folder_3 in fruit_dirs:
+                        curr_folder = []
+                        for (dirpath, dirnames, filenames) in walk('cut_images/' + fruit_folder_3):
+                            curr_folder.extend(filenames)
 
-                        # read in background
-                        img_bg = cv2.imread('backgrounds/' + bg)
+                        # randomly select images from the third folder
+                        fruit_imgs_3 = np.random.choice(curr_folder, num_combo, replace = False)
 
-                        # YOLOv3 requires 416x416 images
-                        img_bg = cv2.resize(img_bg, (416, 416))
+                        # iterate through random images from second folder
+                        for fruit_3 in fruit_imgs_3:
 
-                        # define a random position for first fruit
-                        pos_h = np.random.randint(0, 416 - fruit_w)
-                        pos_w = np.random.randint(0, 416 - fruit_h)
+                            img_fruit_3 = cv2.imread('cut_images/' + fruit_folder_3 + '/' + fruit_3, cv2.IMREAD_UNCHANGED)
+                            img_fruit_3 = cv2.resize(img_fruit_3, (0, 0), None, 0.5, 0.5)
 
-                        # generate image with one fruit
-                        output = cvzone.overlayPNG(img_bg, img_fruit_1, [pos_h, pos_w])
-                        cv2.imwrite('generated_images/' + fruit + bg, output)
+                            fruit_h3, fruit_w3 = img_fruit_3.shape[0:2]
+                            fruit3 = fruit_3.split('.')[0]
 
-                        # define a random position for the second fruit
-                        pos_h2 = np.random.randint(0, 416 - fruit_w2)
-                        pos_w2 = np.random.randint(0, 416 - fruit_h2)
+                            # iterate through each background
+                            for bg in bg_samples:
 
-                        # generate image with two fruits
-                        output = cvzone.overlayPNG(output, img_fruit_2, [pos_h2, pos_w2])
-                        cv2.imwrite('generated_images/' + fruit + fruit2 + bg, output)
+                                path = 'generated_images/'
 
+                                # read in background
+                                img_bg = cv2.imread('backgrounds/' + bg)
 
+                                # YOLOv3 requires 416x416 images
+                                img_bg = cv2.resize(img_bg, (416, 416))
+                                bg_h, bg_w = img_bg.shape[0:2]
+
+                                # define a random position for first fruit
+                                pos_h = np.random.randint(0, 416 - fruit_w)
+                                pos_w = np.random.randint(0, 416 - fruit_h)
+
+                                # generate image with one fruit
+                                output = cvzone.overlayPNG(img_bg, img_fruit_1, [pos_h, pos_w])
+                                cv2.imwrite('generated_images/' + fruit + bg, output)
+                                
+                                path += fruit
+                                label_1 = label_dict[re.sub(r'[^a-zA-Z]', '', fruit)]
+                                x_centre_1 = (pos_h + fruit_w / 2) / bg_w
+                                y_centre_1 = (pos_w + fruit_h / 2) / bg_h
+
+                                with open(path + bg + '.txt', 'w+') as f:
+                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {bg_w} {bg_h}")
+
+                                # define a random position for the second fruit
+                                pos_h2 = np.random.randint(0, 416 - fruit_w2)
+                                pos_w2 = np.random.randint(0, 416 - fruit_h2)
+
+                                # generate image with two fruits
+                                output = cvzone.overlayPNG(output, img_fruit_2, [pos_h2, pos_w2])
+                                cv2.imwrite('generated_images/' + fruit + fruit2 + bg, output)
+
+                                path += fruit2
+                                label_2 = label_dict[re.sub(r'[^a-zA-Z]', '', fruit2)]
+                                x_centre_2 = (pos_h2 + fruit_w2 / 2) / bg_w
+                                y_centre_2 = (pos_w2 + fruit_h2 / 2) / bg_h
+                                
+                                with open(path + bg + '.txt', 'w+') as f:
+                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {bg_w} {bg_h}\n")
+                                    f.write(f"{label_2} {str(x_centre_2)} {str(y_centre_2)} {bg_w} {bg_h}")
+
+                                # define a random position for the third fruit
+                                pos_h3 = np.random.randint(0, 416 - fruit_w3)
+                                pos_w3 = np.random.randint(0, 416 - fruit_h3)
+
+                                # generate image with three fruits
+                                output = cvzone.overlayPNG(output, img_fruit_3, [pos_h3, pos_w3])
+                                cv2.imwrite('generated_images/' + fruit + fruit2 + fruit3 + bg, output)
+
+                                path += fruit3
+                                label_3 = label_dict[re.sub(r'[^a-zA-Z]', '', fruit3)]
+                                x_centre_3 = (pos_h3 + fruit_w3 / 2) / bg_w
+                                y_centre_3 = (pos_w3 + fruit_h3 / 2) / bg_h
+
+                                with open(path + bg + '.txt', 'w+') as f:
+                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {bg_w} {bg_h}\n")
+                                    f.write(f"{label_2} {str(x_centre_2)} {str(y_centre_2)} {bg_w} {bg_h}\n")
+                                    f.write(f"{label_3} {str(x_centre_3)} {str(y_centre_3)} {bg_w} {bg_h}")
 
 if __name__ == '__main__':
 
     num_images = 10
-    num_combos = 10
+    num_combos = 2
     num_bg = 5
     generate_images(num_images, num_bg, num_combos)
