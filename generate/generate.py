@@ -206,7 +206,7 @@ def generate_images(num_images, num_bg, num_combo):
 
 if __name__ == '__main__':
 
-    num_images = 10
+    num_images = 5
     num_combos = 2
     num_bg = 5
     generate_images(num_images, num_bg, num_combos)
