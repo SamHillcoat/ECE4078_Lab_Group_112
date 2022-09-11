@@ -2,6 +2,7 @@ import cv2
 import cvzone
 import numpy as np
 import shutil
+import random
 
 import os
 from os import walk
@@ -78,6 +79,10 @@ def generate_images(num_images, num_bg, num_combo):
             img_fruit_1 = cv2.imread('cut_images/' + fruit_folder + '/' + fruit_1, cv2.IMREAD_UNCHANGED)
             img_fruit_1 = cv2.resize(img_fruit_1, (0, 0), None, 0.5, 0.5)
 
+            scale_factor1 = (round(random.uniform(0.6, 1.4), 1))
+            print(scale_factor1)
+            img_fruit_1 = cv2.resize(img_fruit_1, None, fx = scale_factor1, fy = scale_factor1)
+
             fruit_h, fruit_w = img_fruit_1.shape[0:2]
             fruit = fruit_1.split('.')[0]
 
@@ -99,6 +104,9 @@ def generate_images(num_images, num_bg, num_combo):
                     img_fruit_2 = cv2.imread('cut_images/' + fruit_folder_2 + '/' + fruit_2, cv2.IMREAD_UNCHANGED)
                     img_fruit_2 = cv2.resize(img_fruit_2, (0, 0), None, 0.5, 0.5)
 
+                    scale_factor2 = (round(random.uniform(0.6, 1.4), 1))
+                    img_fruit_2 = cv2.resize(img_fruit_2, None, fx = scale_factor2, fy = scale_factor2)
+
                     fruit_h2, fruit_w2 = img_fruit_2.shape[0:2]
                     fruit2 = fruit_2.split('.')[0]
 
@@ -117,6 +125,9 @@ def generate_images(num_images, num_bg, num_combo):
                             img_fruit_3 = cv2.imread('cut_images/' + fruit_folder_3 + '/' + fruit_3, cv2.IMREAD_UNCHANGED)
                             img_fruit_3 = cv2.resize(img_fruit_3, (0, 0), None, 0.5, 0.5)
 
+                            scale_factor3 = (round(random.uniform(0.6, 1.4), 1))
+                            img_fruit_3 = cv2.resize(img_fruit_3, None, fx = scale_factor3, fy = scale_factor3)
+
                             fruit_h3, fruit_w3 = img_fruit_3.shape[0:2]
                             fruit3 = fruit_3.split('.')[0]
 
@@ -133,55 +144,65 @@ def generate_images(num_images, num_bg, num_combo):
                                 bg_h, bg_w = img_bg.shape[0:2]
 
                                 # define a random position for first fruit
-                                pos_h = np.random.randint(0, 416 - fruit_w)
-                                pos_w = np.random.randint(0, 416 - fruit_h)
+                                pos_w = np.random.randint(0, 416 - fruit_w)
+                                pos_h = np.random.randint(0, 416 - fruit_h)
 
                                 # generate image with one fruit
-                                output = cvzone.overlayPNG(img_bg, img_fruit_1, [pos_h, pos_w])
+                                output = cvzone.overlayPNG(img_bg, img_fruit_1, [pos_w, pos_h])
                                 cv2.imwrite('generated_images/' + fruit + bg, output)
                                 
                                 path += fruit
                                 label_1 = label_dict[re.sub(r'[^a-zA-Z]', '', fruit)]
-                                x_centre_1 = (pos_h + fruit_w / 2) / bg_w
-                                y_centre_1 = (pos_w + fruit_h / 2) / bg_h
+
+                                x_centre_1 = (pos_w + fruit_w / 2) / bg_w
+                                y_centre_1 = (pos_h + fruit_h / 2) / bg_h
+
+                                bbox_w_1 = fruit_w / bg_w
+                                bbox_h_1 = fruit_h / bg_h
 
                                 with open(path + bg + '.txt', 'w+') as f:
-                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {bg_w} {bg_h}")
+                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {str(bbox_w_1)} {str(bbox_h_1)}")
 
                                 # define a random position for the second fruit
-                                pos_h2 = np.random.randint(0, 416 - fruit_w2)
-                                pos_w2 = np.random.randint(0, 416 - fruit_h2)
+                                pos_w2 = np.random.randint(0, 416 - fruit_w2)
+                                pos_h2 = np.random.randint(0, 416 - fruit_h2)
 
                                 # generate image with two fruits
-                                output = cvzone.overlayPNG(output, img_fruit_2, [pos_h2, pos_w2])
+                                output = cvzone.overlayPNG(output, img_fruit_2, [pos_w2, pos_h2])
                                 cv2.imwrite('generated_images/' + fruit + fruit2 + bg, output)
 
                                 path += fruit2
                                 label_2 = label_dict[re.sub(r'[^a-zA-Z]', '', fruit2)]
-                                x_centre_2 = (pos_h2 + fruit_w2 / 2) / bg_w
-                                y_centre_2 = (pos_w2 + fruit_h2 / 2) / bg_h
+                                x_centre_2 = (pos_w2 + fruit_w2 / 2) / bg_w
+                                y_centre_2 = (pos_h2 + fruit_h2 / 2) / bg_h
+
+                                bbox_w_2 = fruit_w2 / bg_w
+                                bbox_h_2 = fruit_h2 / bg_h
                                 
                                 with open(path + bg + '.txt', 'w+') as f:
-                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {bg_w} {bg_h}\n")
-                                    f.write(f"{label_2} {str(x_centre_2)} {str(y_centre_2)} {bg_w} {bg_h}")
+                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {str(bbox_w_1)} {str(bbox_h_1)}\n")
+                                    f.write(f"{label_2} {str(x_centre_2)} {str(y_centre_2)} {str(bbox_w_2)} {str(bbox_h_2)}")
 
                                 # define a random position for the third fruit
-                                pos_h3 = np.random.randint(0, 416 - fruit_w3)
-                                pos_w3 = np.random.randint(0, 416 - fruit_h3)
+                                pos_w3 = np.random.randint(0, 416 - fruit_w3)
+                                pos_h3 = np.random.randint(0, 416 - fruit_h3)
 
                                 # generate image with three fruits
-                                output = cvzone.overlayPNG(output, img_fruit_3, [pos_h3, pos_w3])
+                                output = cvzone.overlayPNG(output, img_fruit_3, [pos_w3, pos_h3])
                                 cv2.imwrite('generated_images/' + fruit + fruit2 + fruit3 + bg, output)
 
                                 path += fruit3
                                 label_3 = label_dict[re.sub(r'[^a-zA-Z]', '', fruit3)]
-                                x_centre_3 = (pos_h3 + fruit_w3 / 2) / bg_w
-                                y_centre_3 = (pos_w3 + fruit_h3 / 2) / bg_h
+                                x_centre_3 = (pos_w3 + fruit_w3 / 2) / bg_w
+                                y_centre_3 = (pos_h3 + fruit_h3 / 2) / bg_h
+
+                                bbox_w_3 = fruit_w3 / bg_w
+                                bbox_h_3 = fruit_h3 / bg_h
 
                                 with open(path + bg + '.txt', 'w+') as f:
-                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {bg_w} {bg_h}\n")
-                                    f.write(f"{label_2} {str(x_centre_2)} {str(y_centre_2)} {bg_w} {bg_h}\n")
-                                    f.write(f"{label_3} {str(x_centre_3)} {str(y_centre_3)} {bg_w} {bg_h}")
+                                    f.write(f"{label_1} {str(x_centre_1)} {str(y_centre_1)} {str(bbox_w_1)} {str(bbox_h_1)}\n")
+                                    f.write(f"{label_2} {str(x_centre_2)} {str(y_centre_2)} {str(bbox_w_2)} {str(bbox_h_2)}\n")
+                                    f.write(f"{label_3} {str(x_centre_3)} {str(y_centre_3)} {str(bbox_w_3)} {str(bbox_h_3)}")
 
 if __name__ == '__main__':
 
