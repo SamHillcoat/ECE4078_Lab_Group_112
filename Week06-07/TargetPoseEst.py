@@ -29,13 +29,13 @@ def get_bounding_box(target_number, image_path):
 
 # read in the list of detection results with bounding boxes and their matching robot pose info
 def get_image_info(base_dir, file_path, image_poses):
-    # there are at most three types of targets in each image
-    target_lst_box = [[], [], []]
-    target_lst_pose = [[], [], []]
+    # there are at most five types of targets in each image
+    target_lst_box = [[], [], [], [], []]
+    target_lst_pose = [[], [], [], [], []]
     completed_img_dict = {}
 
     # add the bounding box info of each target in each image
-    # target labels: 1 = apple, 2 = lemon, 3 = person, 0 = not_a_target
+    # target labels: 1 = apple, 2 = lemon, 3 = pear, 4 = orange, 5 = strawberry, 0 = not_a_target
     img_vals = set(Image(base_dir / file_path, grey=True).image.reshape(-1))
     for target_num in img_vals:
         if target_num > 0:
@@ -48,7 +48,7 @@ def get_image_info(base_dir, file_path, image_poses):
                 pass
 
     # if there are more than one objects of the same type, combine them
-    for i in range(3):
+    for i in range(5):
         if len(target_lst_box[i])>0:
             box = np.stack(target_lst_box[i], axis=1)
             pose = np.stack(target_lst_pose[i], axis=1)
