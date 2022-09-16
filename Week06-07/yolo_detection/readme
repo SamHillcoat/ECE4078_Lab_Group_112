@@ -1,0 +1,84 @@
+Readme to setup darknet yolo for group 112:
+
+NOTE: Please do not use anaconda environment as it causes errors with opencv versions and does not work.
+Install python dependencies:
+
+
+pip3 install opencv-python
+pip3 install scikit-image
+pip3 install scikit-learn
+
+(below may already be installed and are needed from skeleton code)
+pip3 install numpy
+pip3 install matplotlib
+
+For running inference on GPU install CUDA (not needed for CPU):
+sudo apt install nvidia-cuda-toolkit
+
+While inside the base folder yolo_detection, clone yolo darknet repo into folder named darknet:
+git clone https://github.com/AlexeyAB/darknet.git
+
+Edit Makefile in darknet folder:
+Change:
+GPU = 1 (if you want to run yolo on a gpu, much faster but still works fine on cpu)
+LIBSO = 1 (generates c library for python wrapper)
+
+To build darknet, in darknet base directory run:
+make
+
+---------------------------
+Download yolo weights file from google drive at the link:
+https://drive.google.com/file/d/1aYiSgvRMfo2Vu2ceWs3tWsZmH-coJHvT/view?usp=sharing
+
+Place this file in the base directory (yolo_detection) at the same level as TargetPoseEst.py (directory layout shown below)
+
+------------------------------
+
+Place the set of test images and images.txt file in lab_output folder.
+
+
+Ensure that the file structure is as follows:
+-yolo_detection
+	-TargetPoseEst.py
+	-darknet4078.py
+	-CV_eval.py (or marking equivalent)
+	-obj.data
+	-obj.names
+	-yolo-obj.cfg
+	-yolo-obj_final.weights (download from gdrive)
+	
+	-lab_output
+		-images.txt
+		-all detector image set as png or jpg files
+		-targets.txt (saved after running TargetPoseEst.py)
+	-calibration
+		-param
+			-intrinsic_sim.txt
+			-intrinsic_robot.txt
+	-darknet
+		-libdarknet.so (created in make)
+		-Makefile
+		- (all other darknet files from github)
+	
+---------------------------------------------
+Generate targets.txt map file by running:
+
+For simulation dataset image run (this will select correct camera params and object heights:
+python3 TargetPoseEst.py --type sim
+
+For real life robot dataset run:
+python3 TargetPoseEst.py --type robot
+
+
+
+This will generate a targets.txt file in lab_output/ which contains the estimated map.
+
+Run CV_eval.py (as normal):
+python3 CV_eval.py --truth [TrueMap.txt] --est lab_output/targets.txt
+
+Thank you :)
+
+
+
+
+

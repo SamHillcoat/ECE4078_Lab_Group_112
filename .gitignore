@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 Week01-02/operate.py
 Week01-02/lab_output/images.txt
+Week06-07/yolo-obj_final.weights
+Week06-07/M3_112.zip
