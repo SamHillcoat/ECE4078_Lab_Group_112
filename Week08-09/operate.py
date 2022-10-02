@@ -20,10 +20,7 @@ from slam.ekf import EKF
 from slam.robot import Robot
 import slam.aruco_detector as aruco
 
-# import CV components
-sys.path.insert(0,"{}/network/".format(os.getcwd()))
-sys.path.insert(0,"{}/network/scripts".format(os.getcwd()))
-from network.scripts.detector import Detector
+
 
 
 class Operate:
@@ -76,13 +73,15 @@ class Operate:
             self.detector = None
             self.network_vis = cv2.imread('pics/8bit/detector_splash.png')
         else:
-            self.detector = Detector(args.ckpt, use_gpu=False)
-            self.network_vis = np.ones((240, 320,3))* 100
+            #self.detector = Detector(args.ckpt, use_gpu=False)
+            #self.network_vis = np.ones((240, 320,3))* 100
+            pass
         self.bg = pygame.image.load('pics/gui_mask.jpg')
+        self.args = args
 
     # wheel control
     def control(self):       
-        if args.play_data:
+        if self.args.play_data:
             lv, rv = self.pibot.set_velocity()            
         else:
             lv, rv = self.pibot.set_velocity(
@@ -93,6 +92,7 @@ class Operate:
         drive_meas = measure.Drive(lv, rv, dt,0.4,0.4)
         self.control_clock = time.time()
         return drive_meas
+        
     # camera control
     def take_pic(self):
         self.img = self.pibot.get_image()
@@ -100,31 +100,45 @@ class Operate:
             self.data.write_image(self.img)
 
     # SLAM with ARUCO markers       
-    def update_slam(self, drive_meas):
-        
-        # If the robot is in the inital state [0,0] then the we pass that to the marker function to reduce covariacne for markers seen from this state
-        if (np.allclose(self.ekf.robot.state[:3,0],np.zeros((3,)), atol=0.0005) ):
-            print('init state')
-            lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,init_pos=True)
-        elif ((np.allclose(self.ekf.robot.state[:2,0],np.zeros((2,)), atol=0.005) )):
-            print('init spin state')
-            lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,init_pos=False,init_spin=True)
-        else:
-            lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img)
+    def update_slam(self, drive_meas,lms=None):
+        map_flag = True
+        if lms is None:
+            map_flag = False
+            # If the robot is in the inital state [0,0] then the we pass that to the marker function to reduce covariacne for markers seen from this state
+            if (np.allclose(self.ekf.robot.state[:3,0],np.zeros((3,)), atol=0.0005) ):
+                #print('init state')
+                lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,init_pos=True)
+            elif ((np.allclose(self.ekf.robot.state[:2,0],np.zeros((2,)), atol=0.005) )):
+                #print('init spin state')
+                lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,init_pos=False,init_spin=True)
+            else:
+                print('operate update lms')
+                lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img)
 
 
         if self.request_recover_robot:
+            print("operate: recover from pause")
+            if map_flag:
+                #for lm in lms:
+                   # self.ekf.taglist.append(int(lm.tag))
+                self.ekf.add_landmarks(lms,true_pos=True)
+                
+
             is_success = self.ekf.recover_from_pause(lms)
             if is_success:
                 self.notification = 'Robot pose is successfuly recovered'
+                print('Robot pose is successfuly recovered')
                 self.ekf_on = True
             else:
                 self.notification = 'Recover failed, need >2 landmarks!'
+                print('Recover failed, need >2 landmarks!')
                 self.ekf_on = False
             self.request_recover_robot = False
         elif self.ekf_on: # and not self.debug_flag:
             self.ekf.predict(drive_meas)
             self.ekf.add_landmarks(lms)
+            print('operate lms:')
+            print(lms)
             self.ekf.update(lms)
 
     # using computer vision to detect targets
@@ -195,11 +209,11 @@ class Operate:
                                 )
 
         # for target detector (M3)
-        detector_view = cv2.resize(self.network_vis,
-                                   (320, 240), cv2.INTER_NEAREST)
-        self.draw_pygame_window(canvas, detector_view, 
-                                position=(h_pad, 240+2*v_pad)
-                                )
+       # detector_view = cv2.resize(self.network_vis,
+                              #     (320, 240), cv2.INTER_NEAREST)
+      #  self.draw_pygame_window(canvas, detector_view, 
+      #                          position=(h_pad, 240+2*v_pad)
+       #                         )
 
         # canvas.blit(self.gui_mask, (0, 0))
         self.put_caption(canvas, caption='SLAM', position=(2*h_pad+320, v_pad))
@@ -312,7 +326,7 @@ if __name__ == "__main__":
     parser.add_argument("--calib_dir", type=str, default="calibration/param/")
     parser.add_argument("--save_data", action='store_true')
     parser.add_argument("--play_data", action='store_true')
-    parser.add_argument("--ckpt", default='network/scripts/model/model.best.pth')
+    parser.add_argument("--ckpt", default='')
     args, _ = parser.parse_known_args()
     
     pygame.font.init() 
@@ -355,7 +369,7 @@ if __name__ == "__main__":
         operate.update_slam(drive_meas)
         operate.record_data()
         operate.save_image()
-        operate.detect_target()
+       # operate.detect_target()
         # visualise
         operate.draw(canvas)
         pygame.display.update()
