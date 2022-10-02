@@ -98,12 +98,22 @@ class Planning:
 
         plt.show()
 
+
+    def output(self):
+        with open('path_output.txt', 'w+') as f:
+            for path in self.paths:
+                for node in path:
+                    f.write(f'{node[0]} {node[1]}\n')
+        
+
     def run(self):
         self.load()
         self.generate_obstacles()
         
         self.plan()
+        self.output()
         self.plot()
+        
 
 if __name__ == '__main__':
     planning = Planning()
