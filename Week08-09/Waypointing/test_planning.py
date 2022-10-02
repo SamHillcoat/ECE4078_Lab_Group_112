@@ -1,5 +1,6 @@
-from lib2to3.pgen2.pgen import generate_grammar
-from rrt import *
+import numpy as np
+
+from rrtc import *
 from Obstacle import *
 
 from Practical03_Support.path_animation import *
@@ -44,49 +45,37 @@ class Planning:
         self.markers = np.asarray(self.markers, dtype=float)
         self.fruit = np.asarray(self.fruit, dtype=float)
 
-        print(self.markers)
-        print(self.fruit)
-        print(self.waypoints)
+        print('Marker Locs: ', self.markers)
+        print('Fruit Locs: ', self.fruit)
+        print('Waypoint Locs: ', self.waypoints)
 
         with open('baseline.txt', 'r') as f:
             self.baseline = np.loadtxt(f, delimiter=',')
-        print(self.baseline)
+        print('Baseline: ', self.baseline)
 
     def generate_obstacles(self):
         self.all_obstacles = []
         for marker in self.markers:
             width = self.marker_width + self.baseline
-            self.all_obstacles.append(Rectangle([marker[0] - width/2, marker[1]-width/2], width, width))
+            # self.all_obstacles.append(Rectangle([marker[0] - width/2, marker[1]-width/2], width, width))
+            self.all_obstacles.append(Circle(marker[0], marker[1], width / 2))
 
     def generate_path(self, start, end):
         print(start, end)
-        rrt = RRT(start=start, 
+        rrt = RRTC(start=start, 
                   goal=end, 
                   width=3, 
                   height=3, 
                   obstacle_list=self.all_obstacles,
-                  expand_dis=0.5, 
-                  path_resolution=0.1)
+                  expand_dis=0.6, 
+                  path_resolution=0.2)
         path = rrt.planning()
-        print(path)
         return path
 
     def plan(self):
         self.paths = []
-        # path = self.generate_path(self.waypoints[0], self.waypoints[1])
-        rrt = RRT(start=self.waypoints[0], 
-                  goal=self.waypoints[1], 
-                  width=3, 
-                  height=3, 
-                  obstacle_list=self.all_obstacles,
-                  expand_dis=0.5, 
-                  path_resolution=0.5)
-        self.vis.delete()
-        self.vis.Set2DView(20)
-        animate_path_rrt(self.vis, rrt)
-        self.vis.show_inline(height = 500)
-        # for i in range(len(self.waypoints) - 1):
-        #     self.paths.append(self.generate_path(self.waypoints[i], self.waypoints[i+1]))
+        for i in range(len(self.waypoints) - 1):
+            self.paths.append(self.generate_path(self.waypoints[i], self.waypoints[i+1]))
         
 
     def plot(self):
@@ -94,10 +83,18 @@ class Planning:
         markers_x, markers_y = np.split(self.markers, 2, axis=1)
         fruit_x, fruit_y = np.split(self.fruit, 2, axis = 1)
         self.figure = plt.figure()
+
+        for path in self.paths:
+            temp = np.asarray(path)
+            x, y = np.split(temp, 2, axis=1)
+            plt.plot(x, y, color='green', marker='o')
         
-        plt.scatter(waypoints_x, waypoints_y, color='red', marker='+')
+        
         plt.scatter(markers_x, markers_y, color='blue', marker='s')
         plt.scatter(fruit_x, fruit_y, color='yellow', marker='s')
+        plt.scatter(waypoints_x.T, waypoints_y.T, color='red', marker='+')
+        print(len(self.paths))
+        
 
         plt.show()
 
