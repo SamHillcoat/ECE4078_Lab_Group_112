@@ -200,8 +200,11 @@ class Game:
         self.canvas.blit(self.font.render(f'{len(self.waypoints)}', True, (0,0,0)), (waypoint.left, waypoint.top))
 
         if self.level == 1:
-            # drive(self.pos, self.convert_to_world(mouse_pos))
-            ...
+            pos = self.convert_to_world(mouse_pos)
+            
+            # TODO drive(self.pos, pos)
+            
+            self.pos = pos
 
 
     def remove_waypoint(self, waypoint):
@@ -352,7 +355,7 @@ class Game:
                     '''
                     FOR SAM TO IMPLEMENT
                     '''
-                    # drive(start, node)
+                    # TODO drive(start, node)
                     start = node
                 # delay 3 seconds
 
