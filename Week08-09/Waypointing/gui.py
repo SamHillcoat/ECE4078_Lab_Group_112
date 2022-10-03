@@ -1,12 +1,18 @@
 import pygame
 import json
-import re
 import numpy as np
+
+from rrtc import *
+from Obstacle import *
+from math_functions import *
+
+from matplotlib import pyplot as plt
 
 class Game:
     '''
     Class for waypoint GUI and planning
     '''
+
     def __init__(self, args):
 
         self.map_file = args.map
@@ -22,12 +28,14 @@ class Game:
         self.width, self.height = 600, 600
         
         self.waypoints = []
-        self.paths = []
 
         self.scale_factor = self.width / self.arena_width
         # marker size is 70x70mm
         self.marker_size = 0.07
         self.fruit_r = 5
+        self.tolerance = 0.1
+
+        self.pos = (0,0)
 
         # import images for aruco markers
         self.imgs = [pygame.image.load('pics/8bit/lm_1.png'),
@@ -80,6 +88,30 @@ class Game:
         print('Fruit List: ', self.fruit_list)
         print('Fruit True Positions: ', self.fruit_true_pos)
         print('Aruco True Positions: ', self.aruco_true_pos)
+
+
+    def convert_to_pygame(self, pos):
+        '''
+        Convert from world coords to pygame coords
+        '''
+        x, y = pos
+        origin_x, origin_y = self.width/2, self.height/2
+        conv_x = origin_x - x * self.width/2 / (self.arena_width / 2)
+        conv_y = origin_y + y * self.height/2 / (self.arena_width / 2)
+
+        return conv_x, conv_y
+
+
+    def convert_to_world(self, pos):
+        '''
+        Convert from the GUI points to points in the world frame
+        '''
+        origin_x, origin_y = self.width/2, self.height/2
+        x, y = pos
+        world_x = (origin_x - x) / (self.width/2 / (self.arena_width / 2))
+        world_y = (y - origin_y) / (self.height/2 / (self.arena_width / 2))
+
+        return round(world_x, 1), round(world_y, 1)
 
 
     def draw_grid(self):
@@ -167,6 +199,10 @@ class Game:
 
         self.canvas.blit(self.font.render(f'{len(self.waypoints)}', True, (0,0,0)), (waypoint.left, waypoint.top))
 
+        if self.level == 1:
+            # drive(self.pos, self.convert_to_world(mouse_pos))
+            ...
+
 
     def remove_waypoint(self, waypoint):
         '''
@@ -177,18 +213,16 @@ class Game:
 
         self.paths = self.paths[:ind]
 
-        # if ind == 0:
-        #     self.paths.append(self.generate_path((self.width/2, self.height/2), self.waypoints[0]))
-        #     for i in range(0, len(self.waypoints)-1):
-        #         self.paths.append(self.generate_path(self.waypoints[i], self.waypoints[i+1]))
-        # else:
-        #     for i in range(ind-1, len(self.waypoints)-1):
-        #         self.paths.append(self.generate_path(self.waypoints[i], self.waypoints[i+1]))
+        self.reset_canvas()
 
 
     def run(self):
         self.read_search_list()
         self.read_true_map()
+
+        with open('baseline.txt', 'r') as f:
+            self.baseline = np.loadtxt(f, delimiter=',')
+        print('Baseline: ', self.baseline)
 
         pygame.init()
     
@@ -203,6 +237,10 @@ class Game:
         pygame.display.update()
 
         self.draw_markers()
+        
+        if self.level == 2:
+            self.relative_point()
+            self.plan_paths()
 
         running = True
 
@@ -224,29 +262,100 @@ class Game:
                             else:
                                 self.remove_waypoint(waypoint)
 
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        self.drive()
+                    if event.key == pygame.K_BACKSLASH:
+                        if self.level == 2:
+                            self.plan_paths()
 
-    def convert_to_pygame(self, pos):
+
+    '''
+    Driving and planning methods from here on
+    '''
+
+    def relative_point(self):
+        self.rel_pos = []
+        for pos in self.fruit_true_pos:
+            d = compute_distance_between_points((0,0), pos)
+            t = (d - 0.25) / d
+            x_t = t * pos[0]
+            y_t = t * pos[1]
+            conv_pos = self.convert_to_pygame((x_t, y_t))
+            self.rel_pos.append((x_t, y_t))
+            pygame.draw.circle(self.canvas, (0,0,0), conv_pos, 5)
+
+
+    def generate_obstacles(self):
+
+        
+        self.all_obstacles = []
+        for marker in self.aruco_true_pos:
+            width = self.marker_size + self.baseline
+            # self.all_obstacles.append(Rectangle([marker[0] - width/2, marker[1]-width/2], width, width))
+            self.all_obstacles.append(Circle(marker[0], marker[1], width/2 + self.tolerance))
+
+        for fruit in self.fruit_true_pos:
+            width = 0.09 + self.baseline
+            self.all_obstacles.append(Circle(fruit[0], fruit[1], width/2 + self.tolerance))
+
+
+    def generate_path(self, start, end):
+        rrtc = RRTC(start=start, 
+                  goal=end, 
+                  width=self.arena_width/2, 
+                  height=self.arena_width/2, 
+                  obstacle_list=self.all_obstacles,
+                  expand_dis=0.6, 
+                  path_resolution=0.2)
+        path = rrtc.planning()
+        return path
+
+
+    def plan_paths(self):
+        self.generate_obstacles()
+        self.paths = []
+
+        start = (0,0)
+        for fruit in self.search_list:
+            idx = self.fruit_list.index(fruit)
+            end = self.rel_pos[idx]
+            self.paths.append(self.generate_path(start, end))
+            start = end
+
+        self.reset_canvas()
+        for path in self.paths:
+            for i in range(len(path) - 1):
+                conv_start = self.convert_to_pygame(path[i])
+                conv_end = self.convert_to_pygame(path[i+1])
+                pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
+                pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
+
+    
+    def drive(self):
         '''
-        Convert from world coords to pygame coords
+        Drives to waypoints located in self.waypoints
         '''
-        x, y = pos
-        origin_x, origin_y = self.width/2, self.height/2
-        conv_x = origin_x - x * self.width/2 / (self.arena_width / 2)
-        conv_y = origin_y + y * self.height/2 / (self.arena_width / 2)
+        print("I'm trying to drive")
+        if self.level == 1:
+            # drive to list of waypoints
+            start = (0,0)
+            for waypoint in self.waypoints:
+                pos = waypoint.center
+                # drive(start, pos)
+                start = pos
+        elif self.level == 2:
+            # drive to list of paths
+            start = (0,0)
+            for path in self.paths:
+                for node in path:
+                    '''
+                    FOR SAM TO IMPLEMENT
+                    '''
+                    # drive(start, node)
+                    start = node
+                # delay 3 seconds
 
-        return conv_x, conv_y
-
-
-    def convert_to_world(self, pos):
-        '''
-        Convert from the GUI points to points in the world frame
-        '''
-        origin_x, origin_y = self.width/2, self.height/2
-        x, y = pos
-        world_x = (origin_x - x) / (self.width/2 / (self.arena_width / 2))
-        world_y = (y - origin_y) / (self.height/2 / (self.arena_width / 2))
-
-        return round(world_x, 1), round(world_y, 1)
 
 
 if __name__ == '__main__':
@@ -255,7 +364,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--arena", metavar='', type=int, default=0)
     parser.add_argument("--map", metavar='', type=str, default='M4_true_map.txt')
-    parser.add_argument("--level", metavar='', type=int, default=1)
+    parser.add_argument("--level", metavar='', type=int, default=2)
     args, _ = parser.parse_known_args()
 
     game = Game(args)

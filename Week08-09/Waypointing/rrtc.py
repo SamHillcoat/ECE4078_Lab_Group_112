@@ -179,8 +179,8 @@ class RRTC:
         return math.hypot(dx, dy)
 
     def get_random_node(self):
-        x = self.width * np.random.random_sample()
-        y = self.height * np.random.random_sample()
+        x = self.width * np.random.uniform(-1, 1)
+        y = self.height * np.random.uniform(-1, 1)
         rnd = self.Node(x, y)
         return rnd
 
