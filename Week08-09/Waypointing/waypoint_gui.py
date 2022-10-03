@@ -2,15 +2,8 @@ import pygame
 import json
 import re
 import numpy as np
-import math
 
-from Obstacle import *
-from rrt import *
-
-from Practical03_Support.path_animation import *
-import meshcat.geometry as g
-import meshcat.transformations as tf
-from ece4078.Utility import StartMeshcat
+from planning import *
 
 class Game:
     '''
@@ -20,7 +13,7 @@ class Game:
     def __init__(self, args):
         self.markers = None
         self.width, self.height = 600, 600
-        self.waypoints = []
+        self.waypoints = [(0,0)]
         self.map_file = args.map
 
         self.marker_locs = []
@@ -39,7 +32,7 @@ class Game:
         # marker size is 70x70mm
         self.marker_size = 0.07
 
-        self.paths = []
+        self.path = []
 
         pygame.init()
     
@@ -66,6 +59,19 @@ class Game:
                      "aruco9_0": pygame.image.load('pics/8bit/lm_9.png'),
                      "aruco10_0": pygame.image.load('pics/8bit/lm_10.png'),}
 
+
+    def read_search_list(self):
+        """Read the search order of the target fruits
+
+        @return: search order of the target fruits
+        """
+        self.search_list = []
+        with open('search_list.txt', 'r') as fd:
+            fruits = fd.readlines()
+
+            for fruit in fruits:
+                self.search_list.append(fruit.strip())
+        print(self.search_list)
 
     
     def load(self):
@@ -95,9 +101,7 @@ class Game:
         '''
         Draw markers on the screen given coordinates
         '''
-        origin_x, origin_y = self.width/2, self.height/2
-        conv_x = origin_x - x * self.width/2 / (self.arena_width / 2)
-        conv_y = origin_y + y * self.height/2 / (self.arena_width / 2)
+        conv_x, conv_y = self.convert_to_pygame((x,y))
 
         if img:
             scale_size = self.marker_size * self.scale_factor
@@ -154,6 +158,18 @@ class Game:
         for waypoint in self.waypoints:
             self.canvas.blit(self.font.render(f'{i}', True, (0,0,0)), (waypoint.left, waypoint.top))
             i += 1
+
+
+    def convert_to_pygame(self, pos):
+        '''
+        Convert from world coords to pygame coords
+        '''
+        x, y = pos
+        origin_x, origin_y = self.width/2, self.height/2
+        conv_x = origin_x - x * self.width/2 / (self.arena_width / 2)
+        conv_y = origin_y + y * self.height/2 / (self.arena_width / 2)
+
+        return conv_x, conv_y
 
 
     def convert_to_world(self, pos):
@@ -239,18 +255,6 @@ class Game:
 
         self.load()
 
-        with open('baseline.txt', 'r') as f:
-            self.baseline = np.loadtxt(f, delimiter=',')
-        print(self.baseline)
-
-        self.all_obstacles = []
-        
-        for marker in self.marker_locs:
-            width = (self.marker_size + self.baseline) * self.scale_factor
-            marker_width = self.marker_size * self.scale_factor
-    
-            self.all_obstacles.append(Rectangle([marker[0] - width/2, marker[1]-width/2], width+marker_width, width+marker_width))
-
             
         self.reset_canvas()
         
@@ -273,29 +277,16 @@ class Game:
                             self.write_waypoints()
 
                             pygame.display.set_caption(f'{mouse_pos[0]}, {mouse_pos[1]}')
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key==pygame.K_ENTER:
+                            self.drive()
                     elif event.type == pygame.QUIT:
                         running = False
 
 
     '''
-    Functions for RRT planning from now on
+    Functions for RRT planning and driving from now on
     '''
-    def generate_path(self, start, end):
-        rrt = RRT(start=start, 
-                  goal=end, 
-                  width=self.width, 
-                  height=self.height, 
-                  obstacle_list=self.all_obstacles,
-                  expand_dis=100, 
-                  path_resolution=0.1)
-        path = rrt.planning()
-        # vis = StartMeshcat()
-        # vis.delete()
-        # vis.Set2DView(scale = 20, center = [-1, 16, 12, 0])
-        # animate_path_rrt(vis, rrt)
-        # vis.show_inline(height = 500)
-
-        return path
 
 
     def draw_paths(self):
@@ -308,18 +299,14 @@ class Game:
             pygame.draw.circle(self.canvas, (0,0,0), path[-1], 3)
 
 
-    def path_planning(self):
-        '''
-        Function for RRT planning
-        '''
-        
-        if len(self.paths) == 0:
-            self.paths.append(self.generate_path((self.width/2, self.height/2), self.waypoints[0]))
-            
-        else:
-            self.paths.append(self.generate_path(self.waypoints[-2], self.waypoints[-1]))
+    def plan_paths(self):
+        path_planning = Planning()
+        self.path = path_planning.plan(self.waypoints)
 
-        self.draw_paths()
+    def drive(self):
+        ...
+
+
 
 if __name__ == '__main__':
     import argparse
@@ -327,6 +314,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--arena", metavar='', type=int, default=0)
     parser.add_argument("--map", metavar='', type=str, default='M4_true_map.txt')
+    parser.add_argument("--level", metavar='', type=int, default=1)
     args, _ = parser.parse_known_args()
 
     game = Game(args)
