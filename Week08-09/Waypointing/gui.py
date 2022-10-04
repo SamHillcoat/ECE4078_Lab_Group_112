@@ -1,5 +1,6 @@
 import pygame
 import json
+import time
 import numpy as np
 
 from rrtc import *
@@ -359,7 +360,7 @@ class Game:
                     # TODO drive(start, node)
                     drive_to_waypoint(node)
                     #start = node
-                # delay 3 seconds
+                time.sleep(3)
 
 
 

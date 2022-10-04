@@ -314,7 +314,7 @@ def drive_to_waypoint(waypoint):
 
     start = False
   
-    waypoint = [0.0,0.0]
+    #waypoint = [0.0,0.0]
     #robot_pose = [0.0,0.0,0.0]
 
     #Add true map landmarks to ekf
