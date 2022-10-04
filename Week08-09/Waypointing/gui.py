@@ -4,6 +4,7 @@ import numpy as np
 
 from rrtc import *
 from Obstacle import *
+from drive_to_waypoint import drive_to_waypoint
 from math_functions import *
 
 from matplotlib import pyplot as plt
@@ -201,7 +202,7 @@ class Game:
 
         if self.level == 1:
             pos = self.convert_to_world(mouse_pos)
-            
+            drive_to_waypoint(pos)
             # TODO drive(self.pos, pos)
             
             self.pos = pos
@@ -356,7 +357,8 @@ class Game:
                     FOR SAM TO IMPLEMENT
                     '''
                     # TODO drive(start, node)
-                    start = node
+                    drive_to_waypoint(node)
+                    #start = node
                 # delay 3 seconds
 
 
