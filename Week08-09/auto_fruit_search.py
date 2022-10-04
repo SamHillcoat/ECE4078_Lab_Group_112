@@ -216,7 +216,8 @@ def turn_to_point(waypoint,robot_pose):
 
     stop_criteria_met = False
 
-    K_pw = 0.25
+    #K_pw = 0.25
+    K_pw = 1 
     #K_pv = 0.1
     
    # distance_to_goal = get_distance_robot_to_goal(initial_state,waypoint)
