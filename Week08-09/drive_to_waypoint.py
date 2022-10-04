@@ -50,23 +50,23 @@ class Controller:
       #  self.driveKv = 0.7
        # self.driveKw = 0.02
         
-
-        pygame.font.init() 
-        TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
-        TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
-    
-        width, height = 700, 660
-        self.canvas = pygame.display.set_mode((width, height))
-        pygame.display.set_caption('ECE4078 2021 Lab')
-        pygame.display.set_icon(pygame.image.load('pics/8bit/pibot5.png'))
-        self.canvas.fill((0, 0, 0))
-        splash = pygame.image.load('pics/loading.png')
-        pibot_animate = [pygame.image.load('pics/8bit/pibot1.png'),
-                     pygame.image.load('pics/8bit/pibot2.png'),
-                     pygame.image.load('pics/8bit/pibot3.png'),
-                    pygame.image.load('pics/8bit/pibot4.png'),
-                     pygame.image.load('pics/8bit/pibot5.png')]
-        pygame.display.update()
+        if self.level == 2:
+            pygame.font.init() 
+            TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
+            TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
+        
+            width, height = 700, 660
+            self.canvas = pygame.display.set_mode((width, height))
+            pygame.display.set_caption('ECE4078 2021 Lab')
+            pygame.display.set_icon(pygame.image.load('pics/8bit/pibot5.png'))
+            self.canvas.fill((0, 0, 0))
+            splash = pygame.image.load('pics/loading.png')
+            pibot_animate = [pygame.image.load('pics/8bit/pibot1.png'),
+                        pygame.image.load('pics/8bit/pibot2.png'),
+                        pygame.image.load('pics/8bit/pibot3.png'),
+                        pygame.image.load('pics/8bit/pibot4.png'),
+                        pygame.image.load('pics/8bit/pibot5.png')]
+            pygame.display.update()
 
         
     def setup_ekf(self, lm_measure):
@@ -152,8 +152,9 @@ class Controller:
             
             self.operate.update_slam(drive_meas)
             robot_pose = self.operate.ekf.robot.state
-            self.draw()
-            pygame.display.update()
+            if self.level == 2:
+                self.draw()
+                pygame.display.update()
             new_state = robot_pose
             print("Pose:", robot_pose)
             
@@ -218,8 +219,9 @@ class Controller:
             drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.2,right_cov = 0.2)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
-            self.draw()
-            pygame.display.update()
+            if self.level == 2:
+                self.draw()
+                pygame.display.update()
             robot_pose = self.operate.ekf.robot.state
             new_state = robot_pose
             print("pose: ",robot_pose)
