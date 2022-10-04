@@ -9,7 +9,7 @@ import argparse
 from operate import Operate
 from rrtc import *
 from Obstacle import *
-from drive_to_waypoint import drive_to_waypoint
+from drive_to_waypoint import Controller
 from math_functions import *
 
 from matplotlib import pyplot as plt
@@ -23,10 +23,11 @@ class Game:
     Class for waypoint GUI and planning
     '''
 
-    def __init__(self, args, ppi):
+    def __init__(self, args):
 
         self.map_file = args.map
         self.level = args.level
+        self.controller = Controller(args, operate, ppi)
 
         if args.arena == 0:
             # sim dimensions
@@ -46,6 +47,9 @@ class Game:
         self.tolerance = 0.1
 
         self.pos = (0,0)
+
+        #for reading in map aruco markers as ekflandmarks (see read true map function (sam))
+        self.lm_measure = []
 
         # import images for aruco markers
         self.imgs = [pygame.image.load('pics/8bit/lm_1.png'),
@@ -242,7 +246,7 @@ class Game:
 
         if self.level == 1:
             pos = self.convert_to_world(mouse_pos)
-            drive_to_waypoint(pos, self.lm_measure, args, ppi)
+            self.controller.drive_to_waypoint(pos, self.lm_measure, args, ppi)
             # TODO drive(self.pos, pos)
             
             self.pos = pos
@@ -381,6 +385,7 @@ class Game:
         Drives to waypoints located in self.waypoints
         '''
         print("I'm trying to drive")
+        self.controller.setup_ekf(self.lm_measure)
         if self.level == 1:
             # drive to list of waypoints
             start = (0,0)
@@ -396,8 +401,9 @@ class Game:
                     '''
                     FOR SAM TO IMPLEMENT
                     '''
+                    print(node)
                     # TODO drive(start, node)
-                    drive_to_waypoint(node,self.lm_measure, args, ppi)
+                    self.controller.drive_to_waypoint(node)
                     #start = node
                 time.sleep(3)
 
@@ -420,6 +426,7 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
 
     ppi = PenguinPi(args.ip, args.port)
+    operate = Operate(args)
 
-    game = Game(args,ppi)
+    game = Game(args)
     game.run()
