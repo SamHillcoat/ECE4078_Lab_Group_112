@@ -89,14 +89,14 @@ class Controller:
         self.operate.request_recover_robot = False
         self.operate.update_slam(drive_meas)
         robot_pose = self.operate.ekf.robot.state
-        #draw(canvas)
+       # self.draw(canvas)
         #pygame.display.update()
         print(robot_pose)
 
         # robot drives to the waypoint
         # waypoint = [x,y]
         robot_pose = self.turn_to_point(waypoint, robot_pose)
-        robot_pose = self.drive_to_point(waypoint, robot_pose)
+        robot_pose = self.drive_to_point_simple(waypoint, robot_pose)
         print("Finished driving to waypoint: {}; New robot pose: {}".format(
             waypoint, robot_pose))
 
@@ -107,7 +107,7 @@ class Controller:
         #      break
 
     def drive_to_point_simple(self, waypoint, robot_pose):
-        delta_time = 1
+        delta_time = 0.1
 
         initial_state = robot_pose
         distance_to_goal = self.get_distance_robot_to_goal(initial_state,waypoint)
@@ -117,20 +117,26 @@ class Controller:
         threshold_dist = 0.1
         
         while not stop_criteria_met:
-            v = 3
+            v_k = 0.03
 
-            wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v,0)
+            wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,0)
 
-            drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.2,right_cov = 0.2)
-            self.operate.take_pic()
             
+            self.operate.take_pic()
+            self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
+            drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.2,right_cov = 0.2)
+
             self.operate.update_slam(drive_meas)
             robot_pose = self.operate.ekf.robot.state
             new_state = robot_pose
 
+            self.draw()
+            pygame.display.update()
+
             distance_to_goal = self.get_distance_robot_to_goal(
                 new_state,waypoint)
             print("Distance Error:", distance_to_goal)
+            print("Wheel Vel:", wheel_vel)
 
             if (distance_to_goal < threshold_dist):
                 #ENDTODO -----------------------------------------------------------------
@@ -149,7 +155,7 @@ class Controller:
 
     def drive_to_point(self, waypoint, robot_pose):
         drive_time = time.time()
-        delta_time = 0.8
+        delta_time = 0.2
     
         #PID controler
         threshold_dist = 0.08
@@ -181,8 +187,8 @@ class Controller:
             
             self.operate.update_slam(drive_meas)
             robot_pose = self.operate.ekf.robot.state
-           # self.draw()
-          #  pygame.display.update()
+            self.draw()
+            pygame.display.update()
             new_state = robot_pose
             print(robot_pose)
 
@@ -207,11 +213,11 @@ class Controller:
         initial_state = robot_pose
 
         drive_time = time.time()
-        delta_time = 0.1
+        delta_time = 0.2
 
         #PID controler
         threshold_dist = 0.015
-        threshold_angle = 0.15
+        threshold_angle = 0.1
 
         initial_state = robot_pose
 
@@ -235,23 +241,23 @@ class Controller:
             print("Wheel Vel: ")
             print(wheel_vel)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
-            time.sleep(0.1)
+            time.sleep(0.05)
             drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.2,right_cov = 0.2)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
-            #self.draw()
-          #  pygame.display.update()
+            self.draw()
+            pygame.display.update()
             robot_pose = self.operate.ekf.robot.state
             new_state = robot_pose
-            print(robot_pose)
+            print("pose: ",robot_pose)
 
 
             #TODO 4: Update errors ---------------------------------------------------
         # distance_to_goal = get_distance_robot_to_goal(
             # new_state,waypoint)
             desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(new_state,waypoint))
-            print("heading Error")
-            print(desired_heading_error)
+            print("heading Error: ",desired_heading_error)
+            print("Desired angle: ",self.get_angle_robot_to_goal(new_state,waypoint))
             #ENDTODO -----------------------------------------------------------------
             #TODO 5: Check for stopping criteria -------------------------------------
             if (abs(desired_heading_error) < threshold_angle):
