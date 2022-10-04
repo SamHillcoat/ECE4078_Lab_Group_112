@@ -106,51 +106,6 @@ class Controller:
         #  if uInput == 'N':
         #      break
 
-    def drive_to_point_simple(self, waypoint, robot_pose):
-        delta_time = 0.1
-
-        initial_state = robot_pose
-        distance_to_goal = self.get_distance_robot_to_goal(initial_state,waypoint)
-
-        stop_criteria_met = False
-
-        threshold_dist = 0.1
-        
-        while not stop_criteria_met:
-            v_k = 0.03
-
-            wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,0)
-
-            
-            self.operate.take_pic()
-            self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
-            drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.2,right_cov = 0.2)
-
-            self.operate.update_slam(drive_meas)
-            robot_pose = self.operate.ekf.robot.state
-            new_state = robot_pose
-
-            self.draw()
-            pygame.display.update()
-
-            distance_to_goal = self.get_distance_robot_to_goal(
-                new_state,waypoint)
-            print("Distance Error:", distance_to_goal)
-            print("Wheel Vel:", wheel_vel)
-
-            if (distance_to_goal < threshold_dist):
-                #ENDTODO -----------------------------------------------------------------
-                stop_criteria_met = True
-
-        return robot_pose
-
-            
-
-
-
-
-
-
 
 
     def drive_to_point(self, waypoint, robot_pose):
@@ -158,7 +113,7 @@ class Controller:
         delta_time = 0.2
     
         #PID controler
-        threshold_dist = 0.08
+        threshold_dist = 0.1
         threshold_angle = 0.23
 
         initial_state = robot_pose
@@ -181,7 +136,7 @@ class Controller:
             # wheel_vel = (lv,rv)
             wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,w_k)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
-            #time.sleep(0.1)
+        # time.sleep(0.1)
             drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.2,right_cov = 0.2)
             self.operate.take_pic()
             
@@ -196,8 +151,6 @@ class Controller:
             #TODO 4: Update errors ---------------------------------------------------
             distance_to_goal = self.get_distance_robot_to_goal(
                 new_state,waypoint)
-            print("Distance Error:", distance_to_goal)
-            print("Wheel Vel:", wheel_vel)
             desired_heading = self.get_angle_robot_to_goal(new_state,waypoint)
 
             #ENDTODO -----------------------------------------------------------------
@@ -216,7 +169,7 @@ class Controller:
         delta_time = 0.2
 
         #PID controler
-        threshold_dist = 0.015
+        threshold_dist = 0.01
         threshold_angle = 0.1
 
         initial_state = robot_pose
@@ -238,7 +191,7 @@ class Controller:
             # Apply control to robot
             # wheel_vel = (lv,rv)
             wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(0,w_k)
-            print("Wheel Vel: ")
+            print("Wheel Vel:")
             print(wheel_vel)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
             time.sleep(0.05)
