@@ -6,6 +6,7 @@ import cv2
 import json
 import argparse
 
+
 from operate import Operate
 from rrtc import *
 from Obstacle import *
@@ -354,8 +355,8 @@ class Game:
                   width=self.arena_width/2, 
                   height=self.arena_width/2, 
                   obstacle_list=self.all_obstacles,
-                  expand_dis=0.6, 
-                  path_resolution=0.2)
+                  expand_dis=0.4, 
+                  path_resolution=0.1)
         path = rrtc.planning()
         return path
 

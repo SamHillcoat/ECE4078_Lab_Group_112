@@ -38,10 +38,11 @@ class Controller:
 
 
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
-        self.turnK = 0.25
-        self.driveKv = 0.2 #linear
-        self.driveKw = 0.02 #angular (want to be very low)
+        self.turnK = 0.22
+        self.driveKv = 0.3 #linear
+        self.driveKw = 0 #angular (want to be very low)
         
+        self.drive_angle_thresh = 0.3
 
         #Real
         #self.turnK = 1
@@ -96,7 +97,7 @@ class Controller:
         # robot drives to the waypoint
         # waypoint = [x,y]
         robot_pose = self.turn_to_point(waypoint, robot_pose)
-        robot_pose = self.drive_to_point_simple(waypoint, robot_pose)
+        robot_pose = self.drive_to_point(waypoint, robot_pose)
         print("Finished driving to waypoint: {}; New robot pose: {}".format(
             waypoint, robot_pose))
 
@@ -110,10 +111,10 @@ class Controller:
 
     def drive_to_point(self, waypoint, robot_pose):
         drive_time = time.time()
-        delta_time = 0.2
+        delta_time = 0.1
     
         #PID controler
-        threshold_dist = 0.1
+        threshold_dist = 0.25
         threshold_angle = 0.23
 
         initial_state = robot_pose
@@ -124,19 +125,27 @@ class Controller:
         K_pv = self.driveKv
         
         distance_to_goal = self.get_distance_robot_to_goal(initial_state,waypoint)
-        desired_heading = self.get_angle_robot_to_goal(initial_state,waypoint)
+        desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(initial_state,waypoint))
+
 
 
         while not stop_criteria_met:
 
             v_k = K_pv*distance_to_goal
-            w_k = K_pw*desired_heading
+
+            if v_k > 0.04:
+                v_k = 0.04
+
+
+            w_k = K_pw*desired_heading_error
+
+            print("Contorl Input:",v_k)
 
             # Apply control to robot
             # wheel_vel = (lv,rv)
             wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,w_k)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
-        # time.sleep(0.1)
+            # time.sleep(0.1)
             drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.2,right_cov = 0.2)
             self.operate.take_pic()
             
@@ -145,13 +154,22 @@ class Controller:
             self.draw()
             pygame.display.update()
             new_state = robot_pose
-            print(robot_pose)
+            print("Pose:", robot_pose)
+            
 
 
             #TODO 4: Update errors ---------------------------------------------------
             distance_to_goal = self.get_distance_robot_to_goal(
                 new_state,waypoint)
-            desired_heading = self.get_angle_robot_to_goal(new_state,waypoint)
+            #desired_heading = self.get_angle_robot_to_goal(new_state,waypoint)
+            desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(initial_state,waypoint))
+            
+            print("Distance:", distance_to_goal)
+            
+
+            if (abs(desired_heading_error) > self.drive_angle_thresh):
+                robot_pose = self.turn_to_point(waypoint,robot_pose)
+
 
             #ENDTODO -----------------------------------------------------------------
             #TODO 5: Check for stopping criteria -------------------------------------
@@ -166,11 +184,11 @@ class Controller:
         initial_state = robot_pose
 
         drive_time = time.time()
-        delta_time = 0.2
+        delta_time = 0.1
 
         #PID controler
         threshold_dist = 0.01
-        threshold_angle = 0.1
+        threshold_angle = 0.15
 
         initial_state = robot_pose
 
@@ -194,7 +212,7 @@ class Controller:
             print("Wheel Vel:")
             print(wheel_vel)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
-            time.sleep(0.05)
+            time.sleep(0.1)
             drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.2,right_cov = 0.2)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
