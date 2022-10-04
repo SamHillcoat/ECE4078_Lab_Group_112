@@ -1,8 +1,12 @@
 import pygame
-import json
 import time
 import numpy as np
+import sys, os
+import cv2
+import json
+import argparse
 
+from operate import Operate
 from rrtc import *
 from Obstacle import *
 from drive_to_waypoint import drive_to_waypoint
@@ -10,12 +14,16 @@ from math_functions import *
 
 from matplotlib import pyplot as plt
 
+sys.path.insert(0, "{}/util".format(os.getcwd()))
+from util.pibot import PenguinPi
+import util.measure as measure
+
 class Game:
     '''
     Class for waypoint GUI and planning
     '''
 
-    def __init__(self, args):
+    def __init__(self, args, ppi):
 
         self.map_file = args.map
         self.level = args.level
@@ -70,26 +78,57 @@ class Game:
         Read the ground truth map and output the pose of the ArUco markers and 3 types of target fruit to search
         """
         with open(self.map_file, 'r') as fd:
-            markers = json.load(fd)
+            gt_dict = json.load(fd)
             self.fruit_list = []
             self.fruit_true_pos = []
-            self.aruco_true_pos = [None] * 10
+            self.aruco_true_pos = np.empty([10, 2])
+            self.lm_measure = []
 
+            # remove unique id of targets of the same type
+            for key in gt_dict:
+                x = np.round(gt_dict[key]['x'], 1)
+                y = np.round(gt_dict[key]['y'], 1)
 
-        for key in markers:
-            if key.startswith('aruco'):
-                if key.startswith('aruco10'):
-                    self.aruco_true_pos[9] = (markers[key]['x'], markers[key]['y'])
+                if key.startswith('aruco'):
+                    if key.startswith('aruco10'):
+                        self.aruco_true_pos[9][0] = x
+                        self.aruco_true_pos[9][1] = y
+                        lm = measure.Marker(np.array([x, y]), 10, covariance=0)
+                        self.lm_measure.append(lm)
+                    else:
+                        marker_id = int(key[5])
+                        self.aruco_true_pos[marker_id - 1][0] = x
+                        self.aruco_true_pos[marker_id - 1][1] = y
+                        lm = measure.Marker(np.array([x, y]), marker_id, covariance=0)
+                        self.lm_measure.append(lm)
                 else:
-                    marker_id = int(key[5]) - 1
-                    self.aruco_true_pos[marker_id] = (markers[key]['x'], markers[key]['y'])
-            else:
-                self.fruit_list.append(key[:-2])
-                self.fruit_true_pos.append((markers[key]['x'], markers[key]['y']))
+                    self.fruit_list.append(key[:-2])
+                    if len(self.fruit_true_pos) == 0:
+                        self.fruit_true_pos = np.array([[x, y]])
+                    else:
+                        self.fruit_true_pos = np.append(self.fruit_true_pos, [[x, y]], axis=0)
 
-        print('Fruit List: ', self.fruit_list)
-        print('Fruit True Positions: ', self.fruit_true_pos)
-        print('Aruco True Positions: ', self.aruco_true_pos)
+            #return fruit_list, fruit_true_pos, aruco_true_pos, lm_measure
+
+        #     self.fruit_list = []
+        #     self.fruit_true_pos = []
+        #     self.aruco_true_pos = [None] * 10
+        #
+        #
+        # for key in markers:
+        #     if key.startswith('aruco'):
+        #         if key.startswith('aruco10'):
+        #             self.aruco_true_pos[9] = (markers[key]['x'], markers[key]['y'])
+        #         else:
+        #             marker_id = int(key[5]) - 1
+        #             self.aruco_true_pos[marker_id] = (markers[key]['x'], markers[key]['y'])
+        #     else:
+        #         self.fruit_list.append(key[:-2])
+        #         self.fruit_true_pos.append((markers[key]['x'], markers[key]['y']))
+        #
+        # print('Fruit List: ', self.fruit_list)
+        # print('Fruit True Positions: ', self.fruit_true_pos)
+        # print('Aruco True Positions: ', self.aruco_true_pos)
 
 
     def convert_to_pygame(self, pos):
@@ -203,7 +242,7 @@ class Game:
 
         if self.level == 1:
             pos = self.convert_to_world(mouse_pos)
-            drive_to_waypoint(pos)
+            drive_to_waypoint(pos, self.lm_measure, args, ppi)
             # TODO drive(self.pos, pos)
             
             self.pos = pos
@@ -358,7 +397,7 @@ class Game:
                     FOR SAM TO IMPLEMENT
                     '''
                     # TODO drive(start, node)
-                    drive_to_waypoint(node)
+                    drive_to_waypoint(node,self.lm_measure, args, ppi)
                     #start = node
                 time.sleep(3)
 
@@ -371,7 +410,16 @@ if __name__ == '__main__':
     parser.add_argument("--arena", metavar='', type=int, default=0)
     parser.add_argument("--map", metavar='', type=str, default='M4_true_map.txt')
     parser.add_argument("--level", metavar='', type=int, default=2)
+    parser.add_argument("--ip", metavar='', type=str, default='localhost')
+    parser.add_argument("--port", metavar='', type=int, default=40000)
+    parser.add_argument("--calib_dir", type=str, default="calibration/param/")
+
+    parser.add_argument("--save_data", action='store_true')
+    parser.add_argument("--play_data", action='store_true')
+    parser.add_argument("--ckpt", default='network/scripts/model/model.best.pth')
     args, _ = parser.parse_known_args()
 
-    game = Game(args)
+    ppi = PenguinPi(args.ip, args.port)
+
+    game = Game(args,ppi)
     game.run()

@@ -278,23 +278,13 @@ def draw(canvas):
         return canvas
 
 
-def drive_to_waypoint(waypoint):
-    parser = argparse.ArgumentParser("Fruit searching")
-    parser.add_argument("--map", type=str, default='M4_true_map.txt')
-    parser.add_argument("--ip", metavar='', type=str, default='localhost')
-    parser.add_argument("--port", metavar='', type=int, default=40000)
-    parser.add_argument("--calib_dir", type=str, default="calibration/param/")
+def drive_to_waypoint(waypoint, lm_measure, args, ppi):
 
-    parser.add_argument("--save_data", action='store_true')
-    parser.add_argument("--play_data", action='store_true')
-    parser.add_argument("--ckpt", default='network/scripts/model/model.best.pth')
-    args, _ = parser.parse_known_args()
 
-    ppi = PenguinPi(args.ip,args.port)
 
     #Setup EKF
     operate = Operate(args)
-    
+
     pygame.font.init() 
     TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
     TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
