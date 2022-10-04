@@ -43,7 +43,7 @@ class Controller:
         self.driveKv = 0.3 #linear
         self.driveKw = 0 #angular (want to be very low)
         
-        self.drive_angle_thresh = 0.15
+        self.drive_angle_thresh = 0.25
 
         #Real
         #self.turnK = 1
@@ -115,7 +115,7 @@ class Controller:
         delta_time = 0.1
     
         #PID controler
-        threshold_dist = 0.2
+        threshold_dist = 0.15
         threshold_angle = 0.23
 
         initial_state = robot_pose
@@ -164,7 +164,7 @@ class Controller:
             distance_to_goal = self.get_distance_robot_to_goal(
                 new_state,waypoint)
             #desired_heading = self.get_angle_robot_to_goal(new_state,waypoint)
-            desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(initial_state,waypoint))
+            desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(new_state,waypoint))
             
             print("Distance:", distance_to_goal)
             print("Heading Error:", desired_heading_error)

@@ -247,7 +247,7 @@ class Game:
 
         if self.level == 1:
             pos = self.convert_to_world(mouse_pos)
-            self.controller.drive_to_waypoint(pos, self.lm_measure, args, ppi)
+            self.controller.drive_to_waypoint(pos)
             # TODO drive(self.pos, pos)
             
             self.pos = pos
