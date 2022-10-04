@@ -5,12 +5,12 @@ import numpy as np
 import math
 
 from Obstacle import *
-from rrt import *
+from rrtc import *
 
 from Practical03_Support.path_animation import *
 import meshcat.geometry as g
 import meshcat.transformations as tf
-from ece4078.Utility import StartMeshcat
+#from ece4078.Utility import StartMeshcat
 
 class Game:
     '''
@@ -281,7 +281,7 @@ class Game:
     Functions for RRT planning from now on
     '''
     def generate_path(self, start, end):
-        rrt = RRT(start=start, 
+        rrt = RRTC(start=start, 
                   goal=end, 
                   width=self.width, 
                   height=self.height, 

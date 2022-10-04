@@ -6,7 +6,7 @@ from Obstacle import *
 from Practical03_Support.path_animation import *
 import meshcat.geometry as g
 import meshcat.transformations as tf
-from ece4078.Utility import StartMeshcat
+#from ece4078.Utility import StartMeshcat
 
 import json
 from matplotlib import pyplot as plt
@@ -20,7 +20,7 @@ class Planning:
 
         self.marker_width = 0.07
 
-        self.vis = StartMeshcat()
+       # self.vis = StartMeshcat()
         
     
     def load(self):
