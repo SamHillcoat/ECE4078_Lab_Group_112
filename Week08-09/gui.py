@@ -28,7 +28,7 @@ class Game:
 
         self.map_file = args.map
         self.level = args.level
-        self.controller = Controller(args, operate, ppi)
+        self.controller = Controller(args, operate, ppi,self.level)
 
         if args.arena == 0:
             # sim dimensions

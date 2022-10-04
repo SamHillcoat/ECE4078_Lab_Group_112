@@ -31,11 +31,11 @@ import util.measure as measure
 # try changing to a fully automatic delivery approach: develop a path-finding algorithm that produces the waypoints
 
 class Controller:
-    def __init__(self, args, operate, ppi,):
+    def __init__(self, args, operate, ppi,level):
         self.operate = operate
         self.ppi = ppi
         self.args = args
-        #self.level = level
+        self.level = level
 
 
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
