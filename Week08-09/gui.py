@@ -246,8 +246,9 @@ class Game:
 
         if self.level == 1:
             pos = self.convert_to_world(mouse_pos)
-            self.controller.drive_to_waypoint(pos, self.lm_measure, args, ppi)
-            # TODO drive(self.pos, pos)
+            print(pos)
+            self.controller.drive_to_waypoint(pos)
+           
             
             self.pos = pos
 
@@ -289,6 +290,10 @@ class Game:
         if self.level == 2:
             self.relative_point()
             self.plan_paths()
+
+        if self.level == 1:
+             self.controller.setup_ekf(self.lm_measure)
+
 
         running = True
 
