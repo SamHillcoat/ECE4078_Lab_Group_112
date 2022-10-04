@@ -3,11 +3,6 @@ import numpy as np
 from rrtc import *
 from Obstacle import *
 
-from Practical03_Support.path_animation import *
-import meshcat.geometry as g
-import meshcat.transformations as tf
-#from ece4078.Utility import StartMeshcat
-
 import json
 from matplotlib import pyplot as plt
 
@@ -19,8 +14,6 @@ class Planning:
         self.fruit = []
 
         self.marker_width = 0.07
-
-       # self.vis = StartMeshcat()
         
     
     def load(self):
@@ -72,10 +65,12 @@ class Planning:
         path = rrt.planning()
         return path
 
-    def plan(self):
-        self.paths = []
-        for i in range(len(self.waypoints) - 1):
-            self.paths.append(self.generate_path(self.waypoints[i], self.waypoints[i+1]))
+    def plan(self, waypoints):
+        paths = []
+        for i in range(len(waypoints) - 1):
+            paths.append(self.generate_path(waypoints[i], waypoints[i+1]))
+
+        return paths
         
 
     def plot(self):
@@ -114,7 +109,3 @@ class Planning:
         self.output()
         self.plot()
         
-
-if __name__ == '__main__':
-    planning = Planning()
-    planning.run()
