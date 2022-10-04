@@ -39,11 +39,11 @@ class Controller:
 
 
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
-        self.turnK = 0.22
-        self.driveKv = 0.3 #linear
+        self.turnK = 0.3
+        self.driveKv = 0.5 #linear
         self.driveKw = 0 #angular (want to be very low)
         
-        self.drive_angle_thresh = 0.25
+        self.drive_angle_thresh = 0.3
 
         #Real
         #self.turnK = 1
@@ -134,8 +134,8 @@ class Controller:
 
             v_k = K_pv*distance_to_goal
 
-            if v_k > 0.04:
-                v_k = 0.04
+            if v_k > 0.08:
+                v_k = 0.08
 
 
             w_k = K_pw*desired_heading_error
