@@ -31,11 +31,11 @@ import util.measure as measure
 # try changing to a fully automatic delivery approach: develop a path-finding algorithm that produces the waypoints
 
 class Controller:
-    def __init__(self, args, operate, ppi,level):
+    def __init__(self, args, operate, ppi,):
         self.operate = operate
         self.ppi = ppi
         self.args = args
-        self.level = level
+        #self.level = level
 
 
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
@@ -43,7 +43,7 @@ class Controller:
         self.driveKv = 0.3 #linear
         self.driveKw = 0 #angular (want to be very low)
         
-        self.drive_angle_thresh = 0.25
+        self.drive_angle_thresh = 0.15
 
         #Real
         #self.turnK = 1
@@ -170,7 +170,7 @@ class Controller:
             
 
             if (abs(desired_heading_error) > self.drive_angle_thresh):
-                robot_pose = self.turn_to_point(waypoint,robot_pose)
+                robot_pose = self.turn_to_point(waypoint,new_state)
 
 
             #ENDTODO -----------------------------------------------------------------
@@ -190,7 +190,7 @@ class Controller:
 
         #PID controler
         threshold_dist = 0.01
-        threshold_angle = 0.15
+        threshold_angle = 0.11
 
         initial_state = robot_pose
 
