@@ -39,7 +39,7 @@ class Controller:
 
 
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
-        self.turnK = 0.3
+        self.turnK = 0.7
         self.driveKv = 0.5 #linear
         self.driveKw = 0 #angular (want to be very low)
         
@@ -115,7 +115,7 @@ class Controller:
         delta_time = 0.1
     
         #PID controler
-        threshold_dist = 0.15
+        threshold_dist = 0.08
         threshold_angle = 0.23
 
         initial_state = robot_pose

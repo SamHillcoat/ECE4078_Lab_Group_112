@@ -246,7 +246,7 @@ class Game:
         self.canvas.blit(self.font.render(f'{len(self.waypoints)}', True, (0,0,0)), (waypoint.left, waypoint.top))
 
         if self.level == 1:
-            self.controller.setup_ekf(self.lm_measure)
+            
             pos = self.convert_to_world(mouse_pos)
             self.controller.drive_to_waypoint(pos)
             # TODO drive(self.pos, pos)
@@ -291,6 +291,8 @@ class Game:
         if self.level == 2:
             self.relative_point()
             self.plan_paths()
+        elif self.level == 1:
+            self.controller.setup_ekf(self.lm_measure)
 
         running = True
 
