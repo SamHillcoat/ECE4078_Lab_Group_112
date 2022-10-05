@@ -39,18 +39,31 @@ class Controller:
 
 
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
-        self.turnK = 0.7
-        self.driveKv = 0.5 #linear
-        self.driveKw = 0 #angular (want to be very low)
+        self.turnK = 0.65 #angular gain in turn loop
+        self.driveKv = 0.6 #linear
+        self.driveKw = 0.5 #angular gain while in drive loop(want to be very low)
         
-        self.drive_angle_thresh = 0.3
+        self.heading_correct_ang_thresh = 0.4
+        self.heading_correct_dist_thresh = 0.25
 
+        self.spin_time = 6.5 # Based on calibration values, time taken to do a full 360 in sec
+
+        #Turn loop heading error threshold
+        self.threshold_angle = 0.08
+
+        #Covariance and uncertainty
+        self.XY_uncertainty = 0
+        self.XY_uncertainty_thresh = 60 #needs tuning TODO
+
+
+
+        self.debug = True
         #Real
         #self.turnK = 1
       #  self.driveKv = 0.7
        # self.driveKw = 0.02
         
-        if self.level == 2:
+        if self.level == 2 or self.debug == True:
             pygame.font.init() 
             TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
             TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
@@ -99,6 +112,7 @@ class Controller:
         # waypoint = [x,y]
         robot_pose = self.turn_to_point(waypoint, robot_pose)
         robot_pose = self.drive_to_point(waypoint, robot_pose)
+        robot_pose = self.full_spin()
         print("Finished driving to waypoint: {}; New robot pose: {}".format(
             waypoint, robot_pose))
 
@@ -127,10 +141,13 @@ class Controller:
         
         distance_to_goal = self.get_distance_robot_to_goal(initial_state,waypoint)
         desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(initial_state,waypoint))
+        
 
 
 
         while not stop_criteria_met:
+            pygame.display.update() #maybe remove if causing issues
+
 
             v_k = K_pv*distance_to_goal
 
@@ -152,11 +169,22 @@ class Controller:
             
             self.operate.update_slam(drive_meas)
             robot_pose = self.operate.ekf.robot.state
-            if self.level == 2:
+            if self.level == 2 or self.debug:
                 self.draw()
                 pygame.display.update()
             new_state = robot_pose
             print("Pose:", robot_pose)
+
+            
+
+            #check uncertainty in slam position, if too big do a spin to relocate robot (only x,y for now)
+            P = self.operate.ekf.P[0:2,0:2]
+            axes,_ = self.operate.ekf.make_ellipse(P)
+            self.XY_uncertainty = self.ellipse_area(*axes)
+            print('uncertainty: ',self.XY_uncertainty)
+
+            if (self.XY_uncertainty > self.XY_uncertainty_thresh):
+                robot_pose = self.full_spin()
             
 
 
@@ -170,7 +198,8 @@ class Controller:
             print("Heading Error:", desired_heading_error)
             
 
-            if (abs(desired_heading_error) > self.drive_angle_thresh):
+            #if heading error too high, stop and correct
+            if ((abs(desired_heading_error) > self.heading_correct_ang_thresh) and (distance_to_goal > self.heading_correct_dist_thresh)):
                 robot_pose = self.turn_to_point(waypoint,new_state)
 
 
@@ -191,7 +220,7 @@ class Controller:
 
         #PID controler
         threshold_dist = 0.01
-        threshold_angle = 0.11
+        
 
         initial_state = robot_pose
 
@@ -219,7 +248,7 @@ class Controller:
             drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.2,right_cov = 0.2)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
-            if self.level == 2:
+            if self.level == 2 or self.debug:
                 self.draw()
                 pygame.display.update()
             robot_pose = self.operate.ekf.robot.state
@@ -235,11 +264,32 @@ class Controller:
             print("Desired angle: ",self.get_angle_robot_to_goal(new_state,waypoint))
             #ENDTODO -----------------------------------------------------------------
             #TODO 5: Check for stopping criteria -------------------------------------
-            if (abs(desired_heading_error) < threshold_angle):
+            if (abs(desired_heading_error) < self.threshold_angle):
                 #ENDTODO -----------------------------------------------------------------
                 stop_criteria_met = True
 
         return robot_pose
+
+    def full_spin(self):
+        startTime = time.time()
+        dt = 0.1
+        #lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=30,time=self.spin_time)
+        deltaTime = 0
+        while (deltaTime < self.spin_time):
+            print("spinning")
+            lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=30,time=dt)
+            drive_meas = measure.Drive(lv*2,rv*2,dt=dt,left_cov = 0.1,right_cov = 0.1)
+            self.operate.take_pic()
+            self.operate.update_slam(drive_meas)
+            robot_pose = self.operate.ekf.robot.state
+            if self.level == 2 or self.debug == True:
+                self.draw()
+                pygame.display.update()
+            print("pose:", robot_pose)
+            deltaTime = time.time() - startTime
+
+        return robot_pose
+
 
     def get_distance_robot_to_goal(self,robot_pose, goal=np.zeros(2)):
         """
@@ -315,3 +365,6 @@ class Controller:
                                 position=(h_pad, v_pad)
                                 )
         #return canvas
+    @staticmethod
+    def ellipse_area(ax1,ax2):
+        return np.pi*ax1*ax2

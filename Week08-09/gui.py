@@ -293,6 +293,7 @@ class Game:
             self.plan_paths()
         elif self.level == 1:
             self.controller.setup_ekf(self.lm_measure)
+            print(self.controller.operate.ekf.robot.state)
 
         running = True
 
@@ -320,6 +321,8 @@ class Game:
                     if event.key == pygame.K_BACKSLASH:
                         if self.level == 2:
                             self.plan_paths()
+                    if event.key == pygame.K_s:
+                        self.controller.full_spin()
 
 
     '''
