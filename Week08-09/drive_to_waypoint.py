@@ -41,7 +41,7 @@ class Controller:
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
         self.turnK = 0.65 #angular gain in turn loop
         self.driveKv = 0.6 #linear
-        self.driveKw = 0.5 #angular gain while in drive loop(want to be very low)
+        self.driveKw = 0.1 #angular gain while in drive loop(want to be very low)
         
         self.heading_correct_ang_thresh = 0.4
         self.heading_correct_dist_thresh = 0.25
@@ -53,11 +53,11 @@ class Controller:
 
         #Covariance and uncertainty
         self.XY_uncertainty = 0
-        self.XY_uncertainty_thresh = 60 #needs tuning TODO
+        self.XY_uncertainty_thresh = 12 #needs tuning TODO
 
 
 
-        self.debug = True
+        self.debug = False
         #Real
         #self.turnK = 1
       #  self.driveKv = 0.7
@@ -69,6 +69,7 @@ class Controller:
             TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
         
             width, height = 700, 660
+            #self.canvas = canvas
             self.canvas = pygame.display.set_mode((width, height))
             pygame.display.set_caption('ECE4078 2021 Lab')
             pygame.display.set_icon(pygame.image.load('pics/8bit/pibot5.png'))
@@ -112,6 +113,7 @@ class Controller:
         # waypoint = [x,y]
         robot_pose = self.turn_to_point(waypoint, robot_pose)
         robot_pose = self.drive_to_point(waypoint, robot_pose)
+        print("At waypoint")
         robot_pose = self.full_spin()
         print("Finished driving to waypoint: {}; New robot pose: {}".format(
             waypoint, robot_pose))
@@ -143,7 +145,7 @@ class Controller:
         desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(initial_state,waypoint))
         
 
-
+        last_distance_to_goal = 1000 #init with large number
 
         while not stop_criteria_met:
             pygame.display.update() #maybe remove if causing issues
@@ -189,6 +191,7 @@ class Controller:
 
 
             #TODO 4: Update errors ---------------------------------------------------
+            last_distance_to_goal = distance_to_goal
             distance_to_goal = self.get_distance_robot_to_goal(
                 new_state,waypoint)
             #desired_heading = self.get_angle_robot_to_goal(new_state,waypoint)
@@ -201,6 +204,12 @@ class Controller:
             #if heading error too high, stop and correct
             if ((abs(desired_heading_error) > self.heading_correct_ang_thresh) and (distance_to_goal > self.heading_correct_dist_thresh)):
                 robot_pose = self.turn_to_point(waypoint,new_state)
+
+
+            # If distance to waypoint is increasing, stop loop
+            if(distance_to_goal > last_distance_to_goal ):
+                print("Distance Increasing: Stopped")
+                stop_criteria_met = True
 
 
             #ENDTODO -----------------------------------------------------------------

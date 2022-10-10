@@ -361,8 +361,8 @@ class Game:
                   width=self.arena_width/2, 
                   height=self.arena_width/2, 
                   obstacle_list=self.all_obstacles,
-                  expand_dis=0.4, 
-                  path_resolution=0.1)
+                  expand_dis=0.6, 
+                  path_resolution=0.6)
         path = rrtc.planning()
         return path
 
