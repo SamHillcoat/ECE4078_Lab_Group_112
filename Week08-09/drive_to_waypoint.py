@@ -58,6 +58,7 @@ class Controller:
 
 
         self.debug = False
+        self.level = 3
         #Real
         #self.turnK = 1
       #  self.driveKv = 0.7
@@ -90,7 +91,8 @@ class Controller:
         self.operate.update_slam(drive_meas,lms=lm_measure)
 
 
-    def drive_to_waypoint(self, waypoint):
+    def drive_to_waypoint(self, waypoint,fruit_pos=None):
+        self.fruit_pos = fruit_pos
         #Setup EKF
         start = False
         #Add true map landmarks to ekf
@@ -111,10 +113,11 @@ class Controller:
 
         # robot drives to the waypoint
         # waypoint = [x,y]
+        robot_pose = self.full_spin()
         robot_pose = self.turn_to_point(waypoint, robot_pose)
         robot_pose = self.drive_to_point(waypoint, robot_pose)
         print("At waypoint")
-        robot_pose = self.full_spin()
+        
         print("Finished driving to waypoint: {}; New robot pose: {}".format(
             waypoint, robot_pose))
 
@@ -123,6 +126,8 @@ class Controller:
         # uInput = input("Add a new waypoint? [Y/N]")
         #  if uInput == 'N':
         #      break
+
+        return robot_pose
 
 
 
@@ -140,12 +145,16 @@ class Controller:
 
         K_pw = self.driveKw
         K_pv = self.driveKv
+
+        last_distances_to_goal = [] 
         
         distance_to_goal = self.get_distance_robot_to_goal(initial_state,waypoint)
         desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(initial_state,waypoint))
+
+        last_distances_to_goal.append(distance_to_goal)
         
 
-        last_distance_to_goal = 1000 #init with large number
+       
 
         while not stop_criteria_met:
             pygame.display.update() #maybe remove if causing issues
@@ -159,7 +168,7 @@ class Controller:
 
             w_k = K_pw*desired_heading_error
 
-            print("Contorl Input:",v_k)
+         #   print("Contorl Input:",v_k)
 
             # Apply control to robot
             # wheel_vel = (lv,rv)
@@ -175,7 +184,7 @@ class Controller:
                 self.draw()
                 pygame.display.update()
             new_state = robot_pose
-            print("Pose:", robot_pose)
+           # print("Pose:", robot_pose)
 
             
 
@@ -191,15 +200,24 @@ class Controller:
 
 
             #TODO 4: Update errors ---------------------------------------------------
-            last_distance_to_goal = distance_to_goal
+            
             distance_to_goal = self.get_distance_robot_to_goal(
                 new_state,waypoint)
             #desired_heading = self.get_angle_robot_to_goal(new_state,waypoint)
             desired_heading_error = self.clamp_angle(self.get_angle_robot_to_goal(new_state,waypoint))
+
+            last_distances_to_goal.append(distance_to_goal)
             
             print("Distance:", distance_to_goal)
             print("Heading Error:", desired_heading_error)
             
+
+            if self.fruit_pos is not None:
+                dist_to_fruit = self.get_distance_robot_to_goal(robot_pose,self.fruit_pos)
+                if(dist_to_fruit < 0.4):
+                    stop_criteria_met = True
+                    print("breaking: at fruit ---------------------------------")
+                    break
 
             #if heading error too high, stop and correct
             if ((abs(desired_heading_error) > self.heading_correct_ang_thresh) and (distance_to_goal > self.heading_correct_dist_thresh)):
@@ -207,9 +225,11 @@ class Controller:
 
 
             # If distance to waypoint is increasing, stop loop
-            if(distance_to_goal > last_distance_to_goal ):
-                print("Distance Increasing: Stopped")
-                stop_criteria_met = True
+            if (len(last_distances_to_goal) > 4):
+                # Last 3 distance measurements are increasing
+                if(all(i < j for i, j in zip(last_distances_to_goal[-4:], last_distances_to_goal[-3:]))):
+                    print("Distance Increasing: Stopped")
+                    stop_criteria_met = True
 
 
             #ENDTODO -----------------------------------------------------------------
@@ -250,7 +270,7 @@ class Controller:
             # Apply control to robot
             # wheel_vel = (lv,rv)
             wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(0,w_k)
-            print("Wheel Vel:")
+           # print("Wheel Vel:")
             print(wheel_vel)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
             time.sleep(0.1)
@@ -262,7 +282,7 @@ class Controller:
                 pygame.display.update()
             robot_pose = self.operate.ekf.robot.state
             new_state = robot_pose
-            print("pose: ",robot_pose)
+           # print("pose: ",robot_pose)
 
 
             #TODO 4: Update errors ---------------------------------------------------
@@ -294,7 +314,7 @@ class Controller:
             if self.level == 2 or self.debug == True:
                 self.draw()
                 pygame.display.update()
-            print("pose:", robot_pose)
+          #  print("pose:", robot_pose)
             deltaTime = time.time() - startTime
 
         return robot_pose
