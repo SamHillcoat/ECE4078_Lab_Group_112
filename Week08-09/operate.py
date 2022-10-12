@@ -137,8 +137,8 @@ class Operate:
         elif self.ekf_on: # and not self.debug_flag:
             self.ekf.predict(drive_meas)
             self.ekf.add_landmarks(lms)
-            print('operate lms:')
-            print(lms)
+            #print('operate lms:')
+           # print(lms)
             self.ekf.update(lms)
 
     # using computer vision to detect targets

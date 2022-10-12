@@ -164,7 +164,7 @@ class EKF:
        # print (f'n: {n}')
        # print (f'Marker shape {self.markers.shape}')
         Q = np.zeros((n,n))
-        Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.01*np.eye(3)
+        Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.001*np.eye(3)
         return Q
 
     def add_landmarks(self, measurements,true_pos=False):

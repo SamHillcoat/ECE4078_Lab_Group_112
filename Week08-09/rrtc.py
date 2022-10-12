@@ -98,7 +98,7 @@ class RRTC:
             self.end_node_list = temp_node_list
         #ENDTODO ----------------------------------------------------------------------------------------------
             
-        return None  # cannot find path
+        return None, None  # cannot find path
     
     # ------------------------------DO NOT change helper methods below ----------------------------
     def steer(self, from_node, to_node, extend_length=float("inf")):
@@ -155,10 +155,12 @@ class RRTC:
         """
         Reconstruct path from start to end node
         """
+        total_dist = 0
         # First half
         node = self.start_node_list[start_mid_point]
         path = []
         while node.parent is not None:
+            total_dist += abs(self.calc_distance_and_angle(node, node.parent)[0])
             path.append([node.x, node.y])
             node = node.parent
         path.append([node.x, node.y])
@@ -167,11 +169,12 @@ class RRTC:
         node = self.end_node_list[end_mid_point]
         path = path[::-1]
         while node.parent is not None:
+            total_dist += abs(self.calc_distance_and_angle(node, node.parent)[0])
             path.append([node.x, node.y])
             node = node.parent
         path.append([node.x, node.y])
 
-        return path
+        return path, total_dist
 
     def calc_dist_to_goal(self, x, y):
         dx = x - self.end.x
