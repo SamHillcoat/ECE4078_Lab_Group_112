@@ -115,9 +115,10 @@ If you choose to do this semi-autonomously (same as M4 Level 1), then you will r
 ### Further clarification
 - For the simulation, you are **not allowed** to use the true map for the fruit searching task. The task should be based on the pose estimations given by your SLAM and CV
 - You are **not allowed** to use the transformation specified in SLAM_eval and apply it to the maps used in subsequent tasks, since this transformation is calculated using the true map
-- You should include everything you need for running your demo in your submission, including the evaluation scripts (SLAM_eval, CV_eval, RetreivePose). If you haven't submitted the evaluation scripts, during demo you can only download the evaluation scripts from github and use these standard evaluation scripts
+- ~~~You should include everything you need for running your demo in your submission, including the evaluation scripts (SLAM_eval, CV_eval, RetreivePose). If you haven't submitted the evaluation scripts, during demo you can only download the evaluation scripts from github and use these standard evaluation scripts~~~
 - During delivery, if you are performing it semi automatically, the waypoints you can provide are x,y coordinates, you can't specify driving instructions, like distance / time to drive or turning angles, same as how you did your M4
 - During the search, if you are performing it fully automatically, your search function needs to make a visible attempt, i.e., it needs to try to find a path to the target fruits and try to navigate towards it
+- Similar to M2, you will need to submit the slam.txt as well as the targets.txt to the Moodle submission box right after marking for evaluation
 
 ### Marking instructions
 Refer to [M5_marking_instructions.md]()
