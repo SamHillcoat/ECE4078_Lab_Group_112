@@ -30,6 +30,7 @@ Milestone 5 is the integration of all the modules you completed in the previous 
 - Although the final demo is likely to be the same as M5 (at least the task), minor details/rules/marking scheme are still subject to change
 - **PLEASE COMMENT YOUR CODE** this will speed up the marking process and allow us to provide better feedback if you clearly explain your workflow in your code
 - **[UPDATE]**: Three practice maps with 7 fruits in the arena, along with the corresponding search lists are provided in the [practice_maps](practice_maps) folder
+- **[UPDATE]**: The [mapping_eval.py](mapping_eval.py) has been provided to evaluation the mapping performance of your robot. See [line 211](mapping_eval.py#L211) for usage. Examples input files are provided in the [example_mapping_evaluation](example_mapping_evaluation) folder
 
 ---
 ## Marking schemes
