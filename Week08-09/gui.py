@@ -29,6 +29,7 @@ class Game:
         self.map_file = args.map
         self.level = args.level
         self.controller = Controller(args, operate, ppi,self.level)
+        self.planning_init_flag = True
 
         if args.arena == 0:
             # sim dimensions
@@ -75,6 +76,7 @@ class Game:
 
             for fruit in fruits:
                 self.search_list.append(fruit.strip())
+       # self.search_list.append("done")
         print('Search List: ', self.search_list)
 
 
@@ -269,6 +271,8 @@ class Game:
     def run(self):
         self.read_search_list()
         self.read_true_map()
+        
+        self.current_fruit = self.search_list[0]
 
         with open('baseline.txt', 'r') as f:
             self.baseline = np.loadtxt(f, delimiter=',')
@@ -290,7 +294,8 @@ class Game:
         
         if self.level == 2:
             self.relative_point()
-            self.plan_paths()
+            self.generate_obstacles()
+            self.best_path(robot_pose=[0,0,0])
         elif self.level == 1:
             self.controller.setup_ekf(self.lm_measure)
             print(self.controller.operate.ekf.robot.state)
@@ -361,10 +366,10 @@ class Game:
                   width=self.arena_width/2, 
                   height=self.arena_width/2, 
                   obstacle_list=self.all_obstacles,
-                  expand_dis=0.6, 
-                  path_resolution=0.6)
-        path = rrtc.planning()
-        return path
+                  expand_dis=0.5, 
+                  path_resolution=0.5)
+        path, dist = rrtc.planning()
+        return path, dist
 
 
     def plan_paths(self):
@@ -375,7 +380,8 @@ class Game:
         for fruit in self.search_list:
             idx = self.fruit_list.index(fruit)
             end = self.rel_pos[idx]
-            self.paths.append(self.generate_path(start, end))
+            path,_ = self.generate_path(start, end)
+            self.paths.append(path)
             start = end
 
         self.reset_canvas()
@@ -386,6 +392,61 @@ class Game:
                 pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
                 pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
 
+    def plan_to_next(self,robot_pose):
+        current_fruit = self.current_fruit
+        current_fruit_index = self.fruit_list.index(current_fruit)
+        self.current_fruit_pos = self.rel_pos[current_fruit_index]
+        self.current_fruit_true_pos = self.fruit_true_pos[current_fruit_index]
+        print('start pos: ', robot_pose)
+        
+        
+        if(self.planning_init_flag):
+            path,dist = self.generate_path((0,0),self.current_fruit_pos)
+            
+        else:
+            robot_pose = [i.item() for i in robot_pose]
+            path,dist = self.generate_path(robot_pose[0:2],self.current_fruit_pos)
+
+        print("Path: ", path)
+        print("Dist: ", dist)
+
+      #  self.paths = []
+       # self.paths.append(path)
+
+        self.reset_canvas()
+        for i in range(len(path) - 1):
+                conv_start = self.convert_to_pygame(path[i])
+                conv_end = self.convert_to_pygame(path[i+1])
+                pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
+                pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
+        pygame.display.update()
+        time.sleep(2)
+
+        return path,dist
+
+    def best_path(self,robot_pose):
+        min_dist = 1000000 #init to large number
+
+        for i in range(10):
+            
+            
+            path,dist = self.plan_to_next(robot_pose)
+
+
+            if (dist <= min_dist):
+                min_dist = dist
+                self.paths = []
+                self.paths.append(path)
+                self.reset_canvas()
+                for i in range(len(path) - 1):
+                        conv_start = self.convert_to_pygame(path[i])
+                        conv_end = self.convert_to_pygame(path[i+1])
+                        pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
+                        pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
+                pygame.display.update()
+        self.planning_init_flag = False
+
+        
     
     def drive(self):
         '''
@@ -401,18 +462,37 @@ class Game:
                 # drive(start, pos)
                 start = pos
         elif self.level == 2:
-            # drive to list of paths
-            start = (0,0)
-            for path in self.paths:
-                for node in path:
-                    '''
-                    FOR SAM TO IMPLEMENT
-                    '''
-                    print(node)
-                    # TODO drive(start, node)
-                    self.controller.drive_to_waypoint(node)
-                    #start = node
-                time.sleep(3)
+            at_last_fruit = False
+            while (at_last_fruit == False):
+                # drive to list of paths
+                start = (0,0)
+                for node in self.paths[0]:
+                    print("Node: ",node)
+                       
+                    robot_pose,new_path = self.controller.drive_to_waypoint(node,self.current_fruit_true_pos)
+                        #start = node
+
+                    if (new_path):
+                        print("Planning New Path --------------------------------------------- \n\n")
+                        self.best_path(robot_pose)
+
+                    
+
+                    if (self.controller.get_distance_robot_to_goal(robot_pose,self.current_fruit_pos) < 0.5):
+                        #robot is at fruit
+                        if (self.current_fruit != self.search_list[-1]):
+                            self.current_fruit = self.search_list[self.search_list.index(self.current_fruit)+1]
+                            print("Planning to next")
+                            self.best_path(robot_pose)
+                        else:
+                            print("Done all")
+                            at_last_fruit = True
+                            break
+
+                  #  print("Planning to Next")
+                   # self.plan_to_next(robot_pose)
+               
+            
 
 
 
