@@ -50,7 +50,7 @@ final_score = 0.8 x simulation_score + 0.2 x robot_score
 Before the fruit searching task, you may choose to manually drive the robot around first and create a map as ```slam.txt``` ([M2: SLAM](../Week03-05/)) and the list of detected target poses as ```targets.txt``` ([M3: CV](../Week06-07/)), or you can generate the arena map and the target poses during the autonomous searching task. Eitherway, we will evaulate your ```slam.txt```:
 
 ```
-mapping_score = (mapping_factor - Aligned_RMSE)/(score_factor - 0.02) x 16 + NumberOfFoundMarkers x 0.4
+mapping_score = (mapping_factor - Aligned_RMSE)/(mapping_factor - 0.02) x 16 + NumberOfFoundMarkers x 0.4
 ```
 
 where ```mapping_factor = 0.2``` for simulation and ```mapping_factor = 0.15``` for physical robot. The maximum mapping_score is 20pts and minimum mapping_score is 0
@@ -94,10 +94,11 @@ If you choose to do this semi-autonomously (same as M4 Level 1), then you will r
 
 3. Penalty of -5pts each time the robot goes out of the boundary/touches the boundary (+/-1.5m from the origin, in both the x- and y-axis)
 
-4. If you have received three penalties (any of the penalties listed above) during a run, you are disqualified for that run and will receive zero score
+4. If you have received three penalties (any of the penalties listed above) during a run, you will receive zero score for that run
 	- e.g. zero score for colliding into any object 3 times or collided into 2 objects + out of the boundary once
 
-5. You may stop your run at any point, and then your score that run will be calculated
+5. ~~You may stop your run at any point, and then your score that run will be calculated~~ When your robot has stopped moving by itself, you may stop your run, and then your score for that run will be calculated
+    - If you stop the run while the robot is moving, or if you manually stop the robot/script, you will receive zero score for that run. This is to prevent teams from stopping the run when the robot reach a fruit by luck
 
 6. The **entire** robot has to be within 0.5m of the target fruit to be considered as a successful collection
 
@@ -107,7 +108,8 @@ If you choose to do this semi-autonomously (same as M4 Level 1), then you will r
 
 9. When you are manually mapping the arena (if you choose to), you must start at the origin (0, 0, 0)
 
-10. As usual, time limit is 20min for simulation and 10min for physical robot
+10. Time limit is **30min for simulation** and **15min for physical robot**
+    - You should end your last run ~2min before the time limit, to allow efficient time to submit the map files
 
 11. The best run/attempt will be considered as your final score
 
