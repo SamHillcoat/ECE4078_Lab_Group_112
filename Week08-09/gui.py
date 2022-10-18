@@ -2,7 +2,6 @@ import pygame
 import time
 import numpy as np
 import sys, os
-import cv2
 import json
 import argparse
 
@@ -28,15 +27,18 @@ class Game:
 
         self.map_file = args.map
         self.level = args.level
+        self.arena = args.arena
         self.controller = Controller(args, operate, ppi,self.level)
         self.planning_init_flag = True
 
         if args.arena == 0:
             # sim dimensions
             self.arena_width = 3
+            self.scale = 1
         elif args.arena == 1:
             # real dimensions
             self.arena_width = 2
+            self.scale = 1.5
 
         self.width, self.height = 600, 600
         
@@ -98,44 +100,22 @@ class Game:
 
                 if key.startswith('aruco'):
                     if key.startswith('aruco10'):
-                        self.aruco_true_pos[9][0] = x
-                        self.aruco_true_pos[9][1] = y
+                        self.aruco_true_pos[9][0] = x / self.scale
+                        self.aruco_true_pos[9][1] = y / self.scale
                         lm = measure.Marker(np.array([x, y]), 10, covariance=0)
                         self.lm_measure.append(lm)
                     else:
                         marker_id = int(key[5])
-                        self.aruco_true_pos[marker_id - 1][0] = x
-                        self.aruco_true_pos[marker_id - 1][1] = y
+                        self.aruco_true_pos[marker_id - 1][0] = x / self.scale
+                        self.aruco_true_pos[marker_id - 1][1] = y / self.scale
                         lm = measure.Marker(np.array([x, y]), marker_id, covariance=0)
                         self.lm_measure.append(lm)
                 else:
                     self.fruit_list.append(key[:-2])
                     if len(self.fruit_true_pos) == 0:
-                        self.fruit_true_pos = np.array([[x, y]])
+                        self.fruit_true_pos = np.array([[x, y]]) / self.scale
                     else:
-                        self.fruit_true_pos = np.append(self.fruit_true_pos, [[x, y]], axis=0)
-
-            #return fruit_list, fruit_true_pos, aruco_true_pos, lm_measure
-
-        #     self.fruit_list = []
-        #     self.fruit_true_pos = []
-        #     self.aruco_true_pos = [None] * 10
-        #
-        #
-        # for key in markers:
-        #     if key.startswith('aruco'):
-        #         if key.startswith('aruco10'):
-        #             self.aruco_true_pos[9] = (markers[key]['x'], markers[key]['y'])
-        #         else:
-        #             marker_id = int(key[5]) - 1
-        #             self.aruco_true_pos[marker_id] = (markers[key]['x'], markers[key]['y'])
-        #     else:
-        #         self.fruit_list.append(key[:-2])
-        #         self.fruit_true_pos.append((markers[key]['x'], markers[key]['y']))
-        #
-        # print('Fruit List: ', self.fruit_list)
-        # print('Fruit True Positions: ', self.fruit_true_pos)
-        # print('Aruco True Positions: ', self.aruco_true_pos)
+                        self.fruit_true_pos = np.append(self.fruit_true_pos, [[x / self.scale, y / self.scale]], axis=0)
 
 
     def convert_to_pygame(self, pos):
@@ -159,7 +139,8 @@ class Game:
         world_x = (origin_x - x) / (self.width/2 / (self.arena_width / 2))
         world_y = (y - origin_y) / (self.height/2 / (self.arena_width / 2))
 
-        return round(world_x, 1), round(world_y, 1)
+    
+        return round(world_x / self.scale, 1), round(world_y / self.scale, 1)
 
 
     def draw_grid(self):
