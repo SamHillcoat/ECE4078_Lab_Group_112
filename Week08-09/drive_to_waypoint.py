@@ -57,7 +57,7 @@ class Controller:
         
 
 
-        self.debug = True
+        self.debug = False
         self.level = level
         #Real
         #self.turnK = 1
@@ -230,12 +230,13 @@ class Controller:
 
 
             # If distance to waypoint is increasing, stop loop
-            if ((not stop_criteria_met) and (len(last_distances_to_goal) > 4)):
-                # Last 3 distance measurements are increasing
-                if(all(i < j for i, j in zip(last_distances_to_goal[-4:], last_distances_to_goal[-3:]))):
-                    print("Distance Increasing: Stopped -----------------------------------------\n\n")
-                    self.new_path = True
-                    stop_criteria_met = True
+            if (self.level != 1):
+                if ((not stop_criteria_met) and (len(last_distances_to_goal) > 4)):
+                    # Last 3 distance measurements are increasing
+                    if(all(i < j for i, j in zip(last_distances_to_goal[-4:], last_distances_to_goal[-3:]))):
+                        print("Distance Increasing: Stopped -----------------------------------------\n\n")
+                        self.new_path = True
+                        stop_criteria_met = True
 
 
             #ENDTODO -----------------------------------------------------------------
@@ -280,7 +281,7 @@ class Controller:
             print(wheel_vel)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
             time.sleep(0.1)
-            drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.01,right_cov = 0.01)
+            drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.1,right_cov = 0.1)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
             if self.level == 2 or self.debug:
@@ -313,7 +314,7 @@ class Controller:
         while (deltaTime < self.spin_time):
             print("spinning")
             lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=30,time=dt)
-            drive_meas = measure.Drive(lv*2,rv*2,dt=dt,left_cov = 0.01,right_cov = 0.01)
+            drive_meas = measure.Drive(lv*2,rv*2,dt=dt,left_cov = 0.1,right_cov = 0.1)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
             robot_pose = self.operate.ekf.robot.state
