@@ -345,10 +345,10 @@ class Operate:
         for event in pygame.event.get():
             # drive forward
             if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-                self.command['motion'] = [1, 0]
+                self.command['motion'] = [2, 0]
             # drive backward
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-                self.command['motion'] = [-1, 0]
+                self.command['motion'] = [-2, 0]
             # turn left
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
                 self.command['motion'] = [0, 5]

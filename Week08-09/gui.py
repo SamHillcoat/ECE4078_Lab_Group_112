@@ -361,9 +361,10 @@ class Game:
     def relative_point(self):
         self.rel_pos = []
         for key in self.search_list:
-            pos = self.slam_fruits[key+'s']
+            pos = self.slam_fruits[key+'s'][0]
+            print(key,pos)
             d = compute_distance_between_points((0,0), pos)
-            t = (d - 0.25) / d
+            t = (d - 0.5) / d
             x_t = t * pos[0]
             y_t = t * pos[1]
             conv_pos = self.convert_to_pygame((x_t, y_t))
@@ -378,12 +379,11 @@ class Game:
             marker = self.slam_markers[key]
             width = self.marker_size + self.baseline
             # self.all_obstacles.append(Rectangle([marker[0] - width/2, marker[1]-width/2], width, width))
-            self.all_obstacles.append(Circle(marker[0], marker[1], width/2 + self.tolerance))
-
+            self.all_obstacles.append(Circle(marker[0], marker[1], width/2))
         for key in self.slam_fruits:
-            fruit = self.slam_fruits[key]
-            width = 0.09 + self.baseline
-            self.all_obstacles.append(Circle(fruit[0], fruit[1], width/2 + self.tolerance))
+            for fruit in self.slam_fruits[key]:
+                width = 0.09 + self.baseline
+                self.all_obstacles.append(Circle(fruit[0], fruit[1], width/2))
 
 
     def generate_path(self, start, end):
@@ -449,8 +449,9 @@ class Game:
         return path,dist
 
     def best_path(self,robot_pose):
-        min_dist = 1000000 #init to large number
-
+        min_dist = 10000 #init to large number
+        path = None
+        dist = 10000000
         for i in range(20):
             
             try:
