@@ -124,7 +124,7 @@ class Operate:
                 #print('init spin state')
                 lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,init_pos=False,init_spin=True)
             else:
-                print('operate update lms')
+               # print('operate update lms')
                 lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img)
 
 
