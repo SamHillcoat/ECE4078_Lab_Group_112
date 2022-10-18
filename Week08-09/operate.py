@@ -18,6 +18,8 @@ import shutil # python package for file operations
 sys.path.insert(0, "{}/slam".format(os.getcwd()))
 from slam.ekf import EKF
 from slam.robot import Robot
+from yolov3 import fruit_detection
+from yolov3 import merge_estimations
 import slam.aruco_detector as aruco
 
 
@@ -61,6 +63,8 @@ class Operate:
         self.double_reset_comfirm = 0
         self.image_id = 0
         self.notification = 'Press ENTER to start SLAM'
+        # fruit detection
+        self.fruit_poses = {"apple": [], "lemon": [], "orange": [], "pear": [], "strawberry": []}
         # a 5min timer
         self.count_down = 300
         self.start_time = time.time()
@@ -273,7 +277,12 @@ class Operate:
             # run target_pose est
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_t:
                 self.command['save_image'] = True
-
+                robot_pose = self.operate.ekf.robot.state
+                guesses = fruit_detection(robot_pose)
+                for i in guesses:
+                    self.fruit_poses[i[0]].append([i[1], i[2]])
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
+                merge_estimations()
             # save SLAM map
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
                 self.command['output'] = True

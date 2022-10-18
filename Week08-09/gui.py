@@ -401,7 +401,7 @@ class Game:
                 pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
                 pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
         pygame.display.update()
-        time.sleep(2)
+        time.sleep(0.5)
 
         return path,dist
 
@@ -410,14 +410,17 @@ class Game:
 
         for i in range(10):
             
-            
-            path,dist = self.plan_to_next(robot_pose)
+            try:
+                path,dist = self.plan_to_next(robot_pose)
+            except:
+                print("No path found")
+                
 
 
             if (dist <= min_dist):
                 min_dist = dist
                 self.paths = []
-                self.paths.append(path)
+                self.paths.append(path[1:])
                 self.reset_canvas()
                 for i in range(len(path) - 1):
                         conv_start = self.convert_to_pygame(path[i])
