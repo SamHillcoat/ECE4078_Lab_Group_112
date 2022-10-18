@@ -240,7 +240,7 @@ if __name__ == '__main__':
     elif target_only:
         fruits_est = parse_fruit_map(args.target_est)
         fruit_est_errors = compute_fruit_est_error(fruits_gt, fruits_est)
-        print('Fruit pose estimation errors:')
+        print('Fruit pose estimation errors (without alignment):')
         print(json.dumps(fruit_est_errors, indent=4))
     else:
         # evaluate SLAM
