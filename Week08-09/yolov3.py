@@ -10,16 +10,15 @@ import PIL
 from sklearn.cluster import KMeans
 
 im_width = 416
+fruit_poses = []
 
 
 def get_darknet_bbox(image_path):
-    net = cv.dnn_DetectionModel('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/yolo-obj.cfg',
-                                'yolo-obj_final.weights')  # change path
+    net = cv.dnn_DetectionModel('yolo-obj.cfg', 'yolo-obj_final.weights')  # change path
     net.setInputSize(416, 416)
     net.setInputScale(1.0 / 255)
     net.setInputSwapRB(True)
-    with open('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/obj.names',
-              'rt') as f:  # change path
+    with open('obj.names', 'rt') as f:  # change path
         names = f.read().rstrip('\n').split('\n')
 
     bounding_boxes = []
@@ -28,8 +27,7 @@ def get_darknet_bbox(image_path):
 
     for classId, confidence, box in zip(classes.flatten(), confidences.flatten(), boxes):
         label = '%s: %s' % (names[classId], box)
-        # print(label)
-        bounding_boxes.append(label)
+
         labelSize, baseline = cv.getTextSize(label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
         left, top, width, height = box
         top = max(top, labelSize[1])
@@ -38,42 +36,15 @@ def get_darknet_bbox(image_path):
                      cv.FILLED)
         cv.putText(frame, names[classId], (left, top), cv.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 0))
 
+        bb_label = [names[classId], left, top, width, height]
+        bounding_boxes.append(bb_label)
+
     # cv.imshow('out', frame)
     # cv.imwrite('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/result.jpg', frame)
     return bounding_boxes
 
 
-class ImageInfo():
-    def __init__(self, bbox_list, robot_pose):
-        self.num_targets = len(bbox_list)
-        self.robot_pose = robot_pose
-        self.bboxes = {'apple': [],
-                       'lemon': [],
-                       'pear': [],
-                       'orange': [],
-                       'strawberry': []}
-        for i in range(self.num_targets):
-            target = bbox_list[i][0]
-            self.bboxes[target].append(bbox_list[i][1:])
-
-    def getDetections(self):
-        detections = []
-        for t in self.bboxes.keys():
-            if len(self.bboxes[t]) > 0:
-                detections.append(t)
-        return detections
-
-
-def get_image_info(file_path, image_poses):
-    # target labels: 1 = apple, 2 = lemon, 3 = pear, 4 = orange, 5 = strawberry, 0 = not_a_target
-    bboxes = get_darknet_bbox(file_path)
-    num_targets = len(bboxes)
-
-    imageInfo = ImageInfo(bboxes, image_poses[file_path])
-    return imageInfo
-
-
-def estimate_pose(base_dir, camera_matrix, Info, maptype='sim'):
+def estimate_pose(camera_matrix, detections, robot_pose, maptype='sim'):
     camera_matrix = camera_matrix
     focal_length = camera_matrix[0][0]
     target_dimensions = {'apple': [],
@@ -106,29 +77,18 @@ def estimate_pose(base_dir, camera_matrix, Info, maptype='sim'):
 
     target_list = ['apple', 'lemon', 'pear', 'orange', 'strawberry']
 
-    target_pose_dict = {}
-    targets = Info.getDetections()
+    fruit_type = detections[0]
+    true_height = target_dimensions[detections[0]][2]
 
-    for target in targets:
-        box = Info.bboxes[target]  # [[x],[y],[width],[height]], can be as many boxes as same object in image
-        robot_pose = Info.robot_pose  # [[x], [y], [theta]]
-        true_height = target_dimensions[target][2]
+    d1 = focal_length * true_height / detections[4]  # focal_length*true_height/boundingbox_height # depth from camera
 
-        for i in range(len(box)):
-            target_pose = {'y': 0.0, 'x': 0.0}
-            d1 = focal_length * true_height / box[i][
-                3]  # focal_length*true_height/boundingbox_height # depth from camera
-            im_cx = im_width / 2
+    bb_cx = detections[1] + (detections[3] / 2)
+    d2_hat = -camera_matrix[0][2] + bb_cx
+    d2 = (d2_hat / focal_length) * d1
+    fruit_x = robot_pose[0] + d1 * np.cos(robot_pose[2] + d2 * np.sin(robot_pose[2]))
+    fruit_y = robot_pose[1] + d1 * np.sin(robot_pose[2] + d2 * np.cos(robot_pose[2]))
 
-            bb_cx = box[i][0] + box[i][2] / 2
-            d2_hat = -camera_matrix[0][2] + bb_cx
-            d2 = (d2_hat / focal_length) * d1
-            target_pose['x'] = robot_pose[0] + d1 * np.cos(robot_pose[2] + d2 * np.sin(robot_pose[2]))
-            target_pose['y'] = robot_pose[1] + d1 * np.sin(robot_pose[2] + d2 * np.cos(robot_pose[2]))
-
-            target_pose_dict[target] = target_pose
-
-    return target_pose_dict
+    return [fruit_type, fruit_y, fruit_x]
 
 
 def merge_estimations(target_pose_dict):
@@ -204,14 +164,10 @@ def merge_estimations(target_pose_dict):
     return target_est
 
 
-#def fruit_detection():
-if __name__ == "__main__":
+def fruit_detection(robot_pose):
     fileK = "{}intrinsic_sim.txt".format('./calibration/param/')
     camera_matrix = np.loadtxt(fileK, delimiter=',')
     base_dir = Path('./')
-    config_file = "yolo-obj.cfg"
-    data_file = "obj.data"
-    weights = "yolo-obj_final.weights"
 
     import argparse
 
@@ -226,24 +182,11 @@ if __name__ == "__main__":
     else:
         fileK = "{}intrinsic_sim.txt".format('./calibration/param/')
 
-    # a dictionary of all the saved detector outputs
-    image_poses = {}
-    with open(base_dir / 'lab_output/images.txt') as fp:
-        for line in fp.readlines():
-            pose_dict = ast.literal_eval(line)
-            image_poses[pose_dict['imgfname']] = pose_dict['pose']
-
     # estimate pose of targets in each detector output
-    target_map = {}
-    for file_path in image_poses.keys():
-        completed_img_dict = get_image_info(file_path, image_poses)
-        target_map[file_path] = estimate_pose(base_dir, camera_matrix, completed_img_dict, maptype=args.type)
+    image_path = base_dir / 'pibot_dataset/img_0.png'
 
-    target_est = merge_estimations(target_map)
-    print(target_est)
+    estimates = []
+    for detections in get_darknet_bbox(image_path):
+        estimates.append(estimate_pose(camera_matrix, detections, robot_pose, maptype=args.type))
 
-    # save target pose estimations
-    with open(base_dir / 'lab_output/targets.txt', 'w') as fo:
-        json.dump(target_est, fo)
-
-    print('Estimations saved!')
+    return(estimates)
