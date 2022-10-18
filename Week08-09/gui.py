@@ -360,7 +360,8 @@ class Game:
 
     def relative_point(self):
         self.rel_pos = []
-        for pos in self.fruit_true_pos:
+        for key in self.search_list:
+            pos = self.slam_fruits[key+'s']
             d = compute_distance_between_points((0,0), pos)
             t = (d - 0.25) / d
             x_t = t * pos[0]
@@ -371,15 +372,16 @@ class Game:
 
 
     def generate_obstacles(self):
-
         
         self.all_obstacles = []
-        for marker in self.aruco_true_pos:
+        for key in self.slam_markers:
+            marker = self.slam_markers[key]
             width = self.marker_size + self.baseline
             # self.all_obstacles.append(Rectangle([marker[0] - width/2, marker[1]-width/2], width, width))
             self.all_obstacles.append(Circle(marker[0], marker[1], width/2 + self.tolerance))
 
-        for fruit in self.fruit_true_pos:
+        for key in self.slam_fruits:
+            fruit = self.slam_fruits[key]
             width = 0.09 + self.baseline
             self.all_obstacles.append(Circle(fruit[0], fruit[1], width/2 + self.tolerance))
 
@@ -401,9 +403,7 @@ class Game:
         self.paths = []
 
         start = (0,0)
-        for fruit in self.search_list:
-            idx = self.fruit_list.index(fruit)
-            end = self.rel_pos[idx]
+        for end in self.rel_pos:
             path,_ = self.generate_path(start, end)
             self.paths.append(path)
             start = end
