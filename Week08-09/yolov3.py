@@ -204,6 +204,7 @@ def merge_estimations(target_pose_dict):
     return target_est
 
 
+#def fruit_detection():
 if __name__ == "__main__":
     fileK = "{}intrinsic_sim.txt".format('./calibration/param/')
     camera_matrix = np.loadtxt(fileK, delimiter=',')
