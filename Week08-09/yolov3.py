@@ -92,7 +92,7 @@ def estimate_pose(camera_matrix, detections, robot_pose, maptype='sim'):
 
 
 def fruit_detection(robot_pose):
-    fileK = "{}intrinsic_sim.txt".format('./calibration/param/')
+    fileK = "{}intrinsic.txt".format('calibration/param/')
     camera_matrix = np.loadtxt(fileK, delimiter=',')
     base_dir = Path('./')
 
@@ -110,7 +110,7 @@ def fruit_detection(robot_pose):
         fileK = "{}intrinsic_sim.txt".format('./calibration/param/')
 
     # estimate pose of targets in each detector output
-    image_path = base_dir / 'pibot_dataset/img_0.png'
+    image_path = 'pibot_dataset/img_0.png'
 
     estimates = []
     for detections in get_darknet_bbox(image_path):

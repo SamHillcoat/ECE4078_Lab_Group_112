@@ -27,7 +27,7 @@ from slam.ekf import EKF
 from slam.robot import Robot
 from yolov3 import fruit_detection
 import slam.aruco_detector as aruco
-from gui import Game
+
 
 
 
@@ -168,7 +168,7 @@ class Operate:
             image = self.pibot.get_image()
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             cv2.imwrite(f_, image)
-            self.image_id += 1
+           # self.image_id += 1
             self.command['save_image'] = False
             self.notification = f'{f_} is saved'
 
@@ -322,7 +322,7 @@ class Operate:
             except:
                 pass
 
-        with open('/targets.txt', 'w') as fo:
+        with open('targets.txt', 'w') as fo:
             json.dump(target_est, fo)
 
         print('Estimations saved!')
@@ -364,7 +364,7 @@ class Operate:
             # run target_pose est
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_t:
                 self.command['save_image'] = True
-                robot_pose = self.operate.ekf.robot.state
+                robot_pose = self.ekf.robot.state
                 guesses = fruit_detection(robot_pose)
                 for i in guesses:
                     self.fruit_poses[i[0]].append([i[1], i[2]])
