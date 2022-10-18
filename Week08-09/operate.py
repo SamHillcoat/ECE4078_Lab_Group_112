@@ -5,6 +5,13 @@ import numpy as np
 import cv2 
 import os, sys
 import time
+import json
+from pathlib import Path
+import ast
+import math
+import matplotlib.pyplot as plt
+import PIL
+from sklearn.cluster import KMeans
 
 # import utility functions
 sys.path.insert(0, "{}/utility".format(os.getcwd()))
@@ -18,8 +25,9 @@ import shutil # python package for file operations
 sys.path.insert(0, "{}/slam".format(os.getcwd()))
 from slam.ekf import EKF
 from slam.robot import Robot
+from yolov3 import fruit_detection
 import slam.aruco_detector as aruco
-
+from gui import Game
 
 
 
@@ -61,6 +69,8 @@ class Operate:
         self.double_reset_comfirm = 0
         self.image_id = 0
         self.notification = 'Press ENTER to start SLAM'
+        # fruit detection
+        self.fruit_poses = {"apple": [], "lemon": [], "orange": [], "pear": [], "strawberry": []}
         # a 5min timer
         self.count_down = 300
         self.start_time = time.time()
@@ -78,6 +88,8 @@ class Operate:
             pass
         self.bg = pygame.image.load('pics/gui_mask.jpg')
         self.args = args
+        self.search_list = []
+
 
     # wheel control
     def control(self):       
@@ -236,6 +248,85 @@ class Operate:
         canvas.blit(count_down_surface, (2*h_pad+320+5, 530))
         return canvas
 
+    def read_search_list(self):
+        """
+        Read the search order of the target fruits
+        """
+        with open('search_list.txt', 'r') as fd:
+            fruits = fd.readlines()
+            for fruit in fruits:
+                self.search_list.append(fruit.strip())
+       # self.search_list.append("done")
+        #print('Search List: ', self.search_list)
+
+    def merge_estimations(self):
+        apple_est = self.fruit_poses["apple"]
+        lemon_est = self.fruit_poses["lemon"]
+        pear_est = self.fruit_poses["pear"]
+        orange_est = self.fruit_poses["orange"]
+        strawberry_est = self.fruit_poses["strawberry"]
+        self.read_search_list()
+
+        n = {"apple": 2, "lemon": 2, "pear": 2, "orange": 2, "strawberry": 2}
+        for i in self.search_list:
+            n[i] = 1
+
+        if len(apple_est) > n["apple"]:
+            apple_est_sort = np.sort(apple_est).reshape(-1, 2)
+            apple_est = []
+            kmeans = KMeans(n_clusters=n["apple"], random_state=0).fit(apple_est_sort)
+            apple_est.append(kmeans.cluster_centers_)
+
+        if len(lemon_est) > n["lemon"]:
+            lemon_est_sort = np.sort(lemon_est).reshape(-1, 2)
+            lemon_est = []
+            kmeans = KMeans(n_clusters=n["lemon"], random_state=0).fit(lemon_est_sort)
+            lemon_est.append(kmeans.cluster_centers_)
+
+        if len(pear_est) > n["pear"]:
+            pear_est_sort = np.sort(pear_est).reshape(-1, 2)
+            pear_est = []
+            kmeans = KMeans(n_clusters=n["pear"], random_state=0).fit(pear_est_sort)
+            pear_est.append(kmeans.cluster_centers_)
+        if len(orange_est) > n["orange"]:
+            orange_est_sort = np.sort(orange_est).reshape(-1, 2)
+            orange_est = []
+            kmeans = KMeans(n_clusters=n["orange"], random_state=0).fit(orange_est_sort)
+            orange_est.append(kmeans.cluster_centers_)
+        if len(strawberry_est) > n["strawberry"]:
+            strawberry_est_sort = np.sort(strawberry_est).reshape(-1, 2)
+            strawberry_est = []
+            kmeans = KMeans(n_clusters=n["strawberry"], random_state=0).fit(strawberry_est_sort)
+            strawberry_est.append(kmeans.cluster_centers_)
+        target_est = {}
+        for i in range(2):
+            try:
+                target_est['apple_' + str(i)] = {'y': apple_est[0][i][0].tolist(), 'x': apple_est[0][i][1].tolist()}
+            except:
+                pass
+            try:
+                target_est['lemon_' + str(i)] = {'y': lemon_est[0][i][0].tolist(), 'x': lemon_est[0][i][1].tolist()}
+            except:
+                pass
+            try:
+                target_est['pear_' + str(i)] = {'y': pear_est[0][i][0].tolist(), 'x': pear_est[0][i][1].tolist()}
+            except:
+                pass
+            try:
+                target_est['orange_' + str(i)] = {'y': orange_est[0][i][0].tolist(), 'x': orange_est[0][i][1].tolist()}
+            except:
+                pass
+            try:
+                target_est['strawberry_' + str(i)] = {'y': strawberry_est[0][i][0].tolist(),
+                                                      'x': strawberry_est[0][i][1].tolist()}
+            except:
+                pass
+
+        with open('/targets.txt', 'w') as fo:
+            json.dump(target_est, fo)
+
+        print('Estimations saved!')
+
     @staticmethod
     def draw_pygame_window(canvas, cv2_img, position):
         cv2_img = np.rot90(cv2_img)
@@ -273,7 +364,12 @@ class Operate:
             # run target_pose est
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_t:
                 self.command['save_image'] = True
-
+                robot_pose = self.operate.ekf.robot.state
+                guesses = fruit_detection(robot_pose)
+                for i in guesses:
+                    self.fruit_poses[i[0]].append([i[1], i[2]])
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
+                self.merge_estimations()
             # save SLAM map
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
                 self.command['output'] = True

@@ -2,10 +2,9 @@ import pygame
 import time
 import numpy as np
 import sys, os
-import cv2
 import json
 import argparse
-
+import ast
 
 from operate import Operate
 from rrtc import *
@@ -27,16 +26,20 @@ class Game:
     def __init__(self, args):
 
         self.map_file = args.map
+        self.fruit_map = args.fruit
         self.level = args.level
+        self.arena = args.arena
         self.controller = Controller(args, operate, ppi,self.level)
         self.planning_init_flag = True
 
         if args.arena == 0:
             # sim dimensions
             self.arena_width = 3
+            self.scale = 1
         elif args.arena == 1:
             # real dimensions
             self.arena_width = 2
+            self.scale = 1.5
 
         self.width, self.height = 600, 600
         
@@ -98,44 +101,60 @@ class Game:
 
                 if key.startswith('aruco'):
                     if key.startswith('aruco10'):
-                        self.aruco_true_pos[9][0] = x
-                        self.aruco_true_pos[9][1] = y
+                        self.aruco_true_pos[9][0] = x / self.scale
+                        self.aruco_true_pos[9][1] = y / self.scale
                         lm = measure.Marker(np.array([x, y]), 10, covariance=0)
                         self.lm_measure.append(lm)
                     else:
                         marker_id = int(key[5])
-                        self.aruco_true_pos[marker_id - 1][0] = x
-                        self.aruco_true_pos[marker_id - 1][1] = y
+                        self.aruco_true_pos[marker_id - 1][0] = x / self.scale
+                        self.aruco_true_pos[marker_id - 1][1] = y / self.scale
                         lm = measure.Marker(np.array([x, y]), marker_id, covariance=0)
                         self.lm_measure.append(lm)
                 else:
                     self.fruit_list.append(key[:-2])
                     if len(self.fruit_true_pos) == 0:
-                        self.fruit_true_pos = np.array([[x, y]])
+                        self.fruit_true_pos = np.array([[x, y]]) / self.scale
                     else:
-                        self.fruit_true_pos = np.append(self.fruit_true_pos, [[x, y]], axis=0)
+                        self.fruit_true_pos = np.append(self.fruit_true_pos, [[x / self.scale, y / self.scale]], axis=0)
 
-            #return fruit_list, fruit_true_pos, aruco_true_pos, lm_measure
 
-        #     self.fruit_list = []
-        #     self.fruit_true_pos = []
-        #     self.aruco_true_pos = [None] * 10
-        #
-        #
-        # for key in markers:
-        #     if key.startswith('aruco'):
-        #         if key.startswith('aruco10'):
-        #             self.aruco_true_pos[9] = (markers[key]['x'], markers[key]['y'])
-        #         else:
-        #             marker_id = int(key[5]) - 1
-        #             self.aruco_true_pos[marker_id] = (markers[key]['x'], markers[key]['y'])
-        #     else:
-        #         self.fruit_list.append(key[:-2])
-        #         self.fruit_true_pos.append((markers[key]['x'], markers[key]['y']))
-        #
-        # print('Fruit List: ', self.fruit_list)
-        # print('Fruit True Positions: ', self.fruit_true_pos)
-        # print('Aruco True Positions: ', self.aruco_true_pos)
+    def read_slam_markers(self) -> dict:
+        with open(self.map_file, 'r') as f:
+            usr_dict = ast.literal_eval(f.read())
+            aruco_dict = {}
+            for (i, tag) in enumerate(usr_dict["taglist"]):
+                x = round(usr_dict["map"][0][i] / self.scale, 1) 
+                y = round(usr_dict["map"][1][i] / self.scale, 1)
+                aruco_dict[tag] = np.reshape([x,y], (2,1))
+
+        self.slam_markers = aruco_dict
+        
+    
+    def read_slam_fruit(self) -> dict:
+        with open(self.fruit_map, 'r') as fd:
+            gt_dict = json.load(fd)
+            apples, lemons, pears, oranges, strawberries = [], [], [], [], []
+
+            for key in gt_dict:
+                if key.startswith('apple'):
+                    apples.append(np.array([gt_dict[key]['x'], gt_dict[key]['y']], dtype=float))
+                elif key.startswith('lemon'):
+                    lemons.append(np.array([gt_dict[key]['x'], gt_dict[key]['y']], dtype=float))
+                elif key.startswith('pear'):
+                    pears.append(np.array([gt_dict[key]['x'], gt_dict[key]['y']], dtype=float))
+                elif key.startswith('orange'):
+                    oranges.append(np.array([gt_dict[key]['x'], gt_dict[key]['y']], dtype=float))
+                elif key.startswith('strawberry'):
+                    strawberries.append(np.array([gt_dict[key]['x'], gt_dict[key]['y']], dtype=float))
+
+        self.slam_fruits = {
+            'apples': apples,
+            'lemons': lemons,
+            'pears': pears,
+            'oranges': oranges,
+            'strawberries': strawberries
+        }
 
 
     def convert_to_pygame(self, pos):
@@ -159,7 +178,8 @@ class Game:
         world_x = (origin_x - x) / (self.width/2 / (self.arena_width / 2))
         world_y = (y - origin_y) / (self.height/2 / (self.arena_width / 2))
 
-        return round(world_x, 1), round(world_y, 1)
+    
+        return round(world_x / self.scale, 1), round(world_y / self.scale, 1)
 
 
     def draw_grid(self):
@@ -177,31 +197,32 @@ class Game:
     def draw_markers(self):
         '''
         '''
-        i = 0
-        for marker in self.aruco_true_pos:
-            conv_x, conv_y = self.convert_to_pygame((marker[0], marker[1]))
+        
+        for key in self.slam_markers:
+            conv_x, conv_y = self.convert_to_pygame(self.slam_markers[key])
             scale_size = self.marker_size * self.scale_factor
-            img_scaled = pygame.transform.scale(self.imgs[i], (scale_size, scale_size))
+            img_scaled = pygame.transform.scale(self.imgs[int(key)], (scale_size, scale_size))
             self.canvas.blit(img_scaled, (conv_x - scale_size/2, conv_y - scale_size/2))
-            i += 1
+    
 
-        for i in range(len(self.fruit_list)):
-            conv_x, conv_y = self.convert_to_pygame(self.fruit_true_pos[i])
-            if self.fruit_list[i] == 'apple':
-                pygame.draw.circle(self.canvas, (255,0,0), (conv_x, conv_y), self.fruit_r)
-                pygame.draw.circle(self.canvas, (255,0,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
-            elif self.fruit_list[i] == 'lemon':
-                pygame.draw.circle(self.canvas, (255,255,0), (conv_x, conv_y), self.fruit_r)
-                pygame.draw.circle(self.canvas, (255,255,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
-            elif self.fruit_list[i] == 'orange':
-                pygame.draw.circle(self.canvas, (255,102,0), (conv_x, conv_y), self.fruit_r)
-                pygame.draw.circle(self.canvas, (255,102,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
-            elif self.fruit_list[i] == 'pear':
-                pygame.draw.circle(self.canvas, (0,255,0), (conv_x, conv_y), self.fruit_r)
-                pygame.draw.circle(self.canvas, (0,255,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
-            elif self.fruit_list[i] == 'strawberry':
-                pygame.draw.circle(self.canvas, (255,0,255), (conv_x, conv_y), self.fruit_r)
-                pygame.draw.circle(self.canvas, (255,0,255), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
+        for key in self.slam_fruits:
+            for each in self.slam_fruits[key]:
+                conv_x, conv_y = self.convert_to_pygame(each)
+                if key == 'apples':
+                    pygame.draw.circle(self.canvas, (255,0,0), (conv_x, conv_y), self.fruit_r)
+                    pygame.draw.circle(self.canvas, (255,0,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
+                elif key == 'lemons':
+                    pygame.draw.circle(self.canvas, (255,255,0), (conv_x, conv_y), self.fruit_r)
+                    pygame.draw.circle(self.canvas, (255,255,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
+                elif key == 'oranges':
+                    pygame.draw.circle(self.canvas, (255,102,0), (conv_x, conv_y), self.fruit_r)
+                    pygame.draw.circle(self.canvas, (255,102,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
+                elif key == 'pears':
+                    pygame.draw.circle(self.canvas, (0,255,0), (conv_x, conv_y), self.fruit_r)
+                    pygame.draw.circle(self.canvas, (0,255,0), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
+                elif key == 'strawberries':
+                    pygame.draw.circle(self.canvas, (255,0,255), (conv_x, conv_y), self.fruit_r)
+                    pygame.draw.circle(self.canvas, (255,0,255), (conv_x, conv_y), 5 * (self.scale_factor / 10), 1)
     
 
     def draw_waypoints(self):
@@ -270,7 +291,10 @@ class Game:
 
     def run(self):
         self.read_search_list()
-        self.read_true_map()
+        # self.read_true_map()
+        self.read_slam_markers()
+        self.read_slam_fruit()
+        self.read_search_list()
         
         self.current_fruit = self.search_list[0]
 
@@ -527,6 +551,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--arena", metavar='', type=int, default=0)
     parser.add_argument("--map", metavar='', type=str, default='M4_true_map.txt')
+    parser.add_argument("--fruit", metavar='', type=str, default='')
     parser.add_argument("--level", metavar='', type=int, default=2)
     parser.add_argument("--ip", metavar='', type=str, default='localhost')
     parser.add_argument("--port", metavar='', type=int, default=40000)
