@@ -76,8 +76,10 @@ class EKF:
             if int(lm_new.shape[1]) > 2:
                 R,t = self.umeyama(lm_new, lm_prev)
                 theta = math.atan2(R[1][0], R[0][0])
-                self.robot.state[:2]=t[:2]
-                self.robot.state[2]=theta
+              #  self.robot.state[:2]=t[:2]
+               # self.robot.state[2]=theta
+                self.robot.state[:2] = np.zeros((2,1))
+                self.robot.state[2] = 0
                 return True
             else:
                 print('ekf recover: not enough landmarks')

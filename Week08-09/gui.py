@@ -397,7 +397,7 @@ class Game:
         current_fruit_index = self.fruit_list.index(current_fruit)
         self.current_fruit_pos = self.rel_pos[current_fruit_index]
         self.current_fruit_true_pos = self.fruit_true_pos[current_fruit_index]
-        print('start pos: ', robot_pose)
+        #print('start pos: ', robot_pose)
         
         
         if(self.planning_init_flag):
@@ -407,47 +407,64 @@ class Game:
             robot_pose = [i.item() for i in robot_pose]
             path,dist = self.generate_path(robot_pose[0:2],self.current_fruit_pos)
 
-        print("Path: ", path)
-        print("Dist: ", dist)
+       
+        
 
       #  self.paths = []
        # self.paths.append(path)
 
-        self.reset_canvas()
-        for i in range(len(path) - 1):
-                conv_start = self.convert_to_pygame(path[i])
-                conv_end = self.convert_to_pygame(path[i+1])
-                pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
-                pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
-        pygame.display.update()
-        time.sleep(0.5)
+        #self.reset_canvas()
+        #for i in range(len(path) - 1):
+        #        conv_start = self.convert_to_pygame(path[i])
+        #        conv_end = self.convert_to_pygame(path[i+1])
+         #       pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
+         #       pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
+        #pygame.display.update()
+        #time.sleep(0.5)
 
         return path,dist
 
     def best_path(self,robot_pose):
         min_dist = 1000000 #init to large number
 
-        for i in range(10):
+        for i in range(20):
             
             try:
                 path,dist = self.plan_to_next(robot_pose)
             except:
                 print("No path found")
-                
+            
 
+            # For checking for a backwards path
+            if not self.planning_init_flag:
+                flat_pose = [robot_pose[0].item(),robot_pose[1].item()]
+            else:
+                flat_pose = [0,0]
+
+            print('flat',flat_pose)
+            if ((path is not None) and (not np.allclose(path[0],flat_pose))):
+                print("Path Reversed",path[0],robot_pose[0:2])
+                path.reverse()
+                
 
             if (dist <= min_dist):
                 min_dist = dist
-                self.paths = []
-                self.paths.append(path[1:])
+               # self.paths = []
+                best_path = path
+                self.path = path[1:]
+               # self.paths.append(path[1:])
                 self.reset_canvas()
+                print("Path: ", path)
+                print("Dist: ", dist)
                 for i in range(len(path) - 1):
                         conv_start = self.convert_to_pygame(path[i])
                         conv_end = self.convert_to_pygame(path[i+1])
                         pygame.draw.circle(self.canvas, (0,0,0), conv_start, 3)
                         pygame.draw.line(self.canvas, (0,0,0), conv_start, conv_end, width = 2)
                 pygame.display.update()
+                time.sleep(0.5)
         self.planning_init_flag = False
+        return best_path
 
         
     
@@ -469,7 +486,7 @@ class Game:
             while (at_last_fruit == False):
                 # drive to list of paths
                 start = (0,0)
-                for node in self.paths[0]:
+                for node in self.path:
                     print("Node: ",node)
                        
                     robot_pose,new_path = self.controller.drive_to_waypoint(node,self.current_fruit_true_pos)
@@ -477,16 +494,21 @@ class Game:
 
                     if (new_path):
                         print("Planning New Path --------------------------------------------- \n\n")
-                        self.best_path(robot_pose)
+                        path = self.best_path(robot_pose)
+                        break
 
                     
 
-                    if (self.controller.get_distance_robot_to_goal(robot_pose,self.current_fruit_pos) < 0.5):
+                    if (self.controller.get_distance_robot_to_goal(robot_pose,self.current_fruit_true_pos) < 0.5):
                         #robot is at fruit
                         if (self.current_fruit != self.search_list[-1]):
                             self.current_fruit = self.search_list[self.search_list.index(self.current_fruit)+1]
+                            print("At fruit")
+                            time.sleep(3)
+                            self.controller.full_spin()
                             print("Planning to next")
-                            self.best_path(robot_pose)
+                            path = self.best_path(robot_pose)
+                            
                         else:
                             print("Done all")
                             at_last_fruit = True

@@ -46,14 +46,14 @@ class Controller:
         self.heading_correct_ang_thresh = 0.4
         self.heading_correct_dist_thresh = 0.25
 
-        self.spin_time = 6.5 # Based on calibration values, time taken to do a full 360 in sec
+        self.spin_time = 7 # Based on calibration values, time taken to do a full 360 in sec
 
         #Turn loop heading error threshold
         self.threshold_angle = 0.08
 
         #Covariance and uncertainty
         self.XY_uncertainty = 0
-        self.XY_uncertainty_thresh = 12 #needs tuning TODO
+        self.XY_uncertainty_thresh = 0.6 #needs tuning TODO
         
 
 
@@ -176,10 +176,11 @@ class Controller:
             wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,w_k)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
             # time.sleep(0.1)
-            drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.1,right_cov = 0.1)
+            drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.35,right_cov = 0.35)
             self.operate.take_pic()
             
             self.operate.update_slam(drive_meas)
+            last_state = robot_pose
             robot_pose = self.operate.ekf.robot.state
             if self.level == 2 or self.debug:
                 self.draw()
@@ -187,7 +188,11 @@ class Controller:
             new_state = robot_pose
            # print("Pose:", robot_pose)
 
-            
+            # Check if pose has changed by too much in one update (tries to see if slam updates) and make new path
+            if (self.get_distance_robot_to_goal(last_state,new_state[0:2]) > 0.2):
+                self.new_path = True
+                stop_criteria_met = True
+
 
             #check uncertainty in slam position, if too big do a spin to relocate robot (only x,y for now)
             P = self.operate.ekf.P[0:2,0:2]
@@ -281,13 +286,15 @@ class Controller:
             print(wheel_vel)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
             time.sleep(0.1)
-            drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.1,right_cov = 0.1)
+            drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.2,right_cov = 0.2)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
+            robot_pose = self.operate.ekf.robot.state
             if self.level == 2 or self.debug:
                 self.draw()
                 pygame.display.update()
-            robot_pose = self.operate.ekf.robot.state
+            
+            
             new_state = robot_pose
            # print("pose: ",robot_pose)
 
@@ -304,6 +311,8 @@ class Controller:
                 #ENDTODO -----------------------------------------------------------------
                 stop_criteria_met = True
 
+        
+
         return robot_pose
 
     def full_spin(self):
@@ -313,7 +322,7 @@ class Controller:
         deltaTime = 0
         while (deltaTime < self.spin_time):
             print("spinning")
-            lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=30,time=dt)
+            lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=20,time=dt)
             drive_meas = measure.Drive(lv*2,rv*2,dt=dt,left_cov = 0.1,right_cov = 0.1)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
