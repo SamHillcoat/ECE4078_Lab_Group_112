@@ -202,6 +202,7 @@ class Game:
             conv_x, conv_y = self.convert_to_pygame(self.slam_markers[key])
             scale_size = self.marker_size * self.scale_factor
             img_scaled = pygame.transform.scale(self.imgs[int(key)-1], (scale_size, scale_size))
+            print(conv_x, conv_y)
             self.canvas.blit(img_scaled, (conv_x - scale_size/2, conv_y - scale_size/2))
     
 
@@ -291,10 +292,10 @@ class Game:
 
     def run(self):
         self.read_search_list()
-        # self.read_true_map()
-        self.read_slam_markers()
-        self.read_slam_fruit()
-        self.read_search_list()
+        self.read_true_map()
+        # self.read_slam_markers()
+        # self.read_slam_fruit()
+        # self.read_search_list()
         
         self.current_fruit = self.search_list[0]
 
