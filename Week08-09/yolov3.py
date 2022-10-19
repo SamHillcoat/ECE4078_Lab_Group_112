@@ -24,24 +24,26 @@ def get_darknet_bbox(image_path):
     bounding_boxes = []
     frame = cv.imread(image_path)
     classes, confidences, boxes = net.detect(frame, confThreshold=0.25, nmsThreshold=0.4)
+    if len(classes) == 0:
+        return "No detections"
+    else:
+        for classId, confidence, box in zip(classes.flatten(), confidences.flatten(), boxes):
+            label = '%s: %s' % (names[classId], box)
 
-    for classId, confidence, box in zip(classes.flatten(), confidences.flatten(), boxes):
-        label = '%s: %s' % (names[classId], box)
+            labelSize, baseline = cv.getTextSize(label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            left, top, width, height = box
+            top = max(top, labelSize[1])
+            cv.rectangle(frame, box, color=(0, 255, 0), thickness=3)
+            cv.rectangle(frame, (left, top - labelSize[1]), (left + labelSize[0], top + baseline), (255, 255, 255),
+                         cv.FILLED)
+            cv.putText(frame, names[classId], (left, top), cv.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 0))
 
-        labelSize, baseline = cv.getTextSize(label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-        left, top, width, height = box
-        top = max(top, labelSize[1])
-        cv.rectangle(frame, box, color=(0, 255, 0), thickness=3)
-        cv.rectangle(frame, (left, top - labelSize[1]), (left + labelSize[0], top + baseline), (255, 255, 255),
-                     cv.FILLED)
-        cv.putText(frame, names[classId], (left, top), cv.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 0))
+            bb_label = [names[classId], left, top, width, height]
+            bounding_boxes.append(bb_label)
 
-        bb_label = [names[classId], left, top, width, height]
-        bounding_boxes.append(bb_label)
-
-    # cv.imshow('out', frame)
-    # cv.imwrite('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/result.jpg', frame)
-    return bounding_boxes
+        # cv.imshow('out', frame)
+        # cv.imwrite('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/result.jpg', frame)
+        return bounding_boxes
 
 
 def estimate_pose(camera_matrix, detections, robot_pose, maptype='sim'):
@@ -113,7 +115,10 @@ def fruit_detection(robot_pose):
     image_path = 'pibot_dataset/img_0.png'
 
     estimates = []
-    for detections in get_darknet_bbox(image_path):
-        estimates.append(estimate_pose(camera_matrix, detections, robot_pose, maptype=args.type))
-
-    return(estimates)
+    detections = get_darknet_bbox(image_path)
+    if detections == "No detections":
+        return None
+    else:
+        for detection in detections:
+            estimates.append(estimate_pose(camera_matrix, detection, robot_pose, maptype=args.type))
+        return(estimates)
