@@ -369,8 +369,12 @@ class Operate:
                 self.command['save_image'] = True
                 robot_pose = self.ekf.robot.state
                 guesses = fruit_detection(robot_pose)
-                for i in guesses:
-                    self.fruit_poses[i[0]].append([i[1], i[2]])
+                if guesses == None:
+                    print('No detections')
+                else:
+                    for i in guesses:
+                        print(i)
+                        self.fruit_poses[i[0]].append([i[1], i[2]])
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
                 self.merge_estimations()
             # save SLAM map
