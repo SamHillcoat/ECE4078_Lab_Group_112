@@ -36,21 +36,25 @@ class Controller:
         self.ppi = ppi
         self.args = args
         self.level = level
+        self.lms = None
 
         self.new_path = False
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
-        #self.turnK = 0.65 #angular gain in turn loop
-        #self.driveKv = 0.6 #linear
-        #self.driveKw = 0.1 #angular gain while in drive loop(want to be very low)
+        self.turnK = 0.4 #angular gain in turn loop
+        self.driveKv = 0.6 #linear
+        self.driveKw = 0 #angular gain while in drive loop(want to be very low)
 
-        self.turnK = 2
-        self.driveKv = 2 #linear
-        self.driveKw = 0.1 #angular gain while in drive loop(want to be very low)
+        self.driveCorrFac = 1.25 # correction factor applied to slam predict wheel vel determined using calibration func
+
+        #For Robot
+        #self.turnK = 2
+       # self.driveKv = 2 #linear
+        #self.driveKw = 0.1 #angular gain while in drive loop(want to be very low)
         
         self.heading_correct_ang_thresh = 0.4
         self.heading_correct_dist_thresh = 0.25
 
-        self.spin_time = 7 # Based on calibration values, time taken to do a full 360 in sec
+        self.spin_time = 7.5 # Based on calibration values, time taken to do a full 360 in sec
 
         #Turn loop heading error threshold
         self.threshold_angle = 0.08
@@ -106,7 +110,7 @@ class Controller:
             # estimate the robot's pose
                 # Run SLAM with true marker positions (modied from self.operate.py)
             #self.operate.update_keyboard()
-        self.operate.take_pic()
+        #self.operate.take_pic()
         drive_meas = self.operate.control()
 
         self.operate.request_recover_robot = False
@@ -179,8 +183,9 @@ class Controller:
             # wheel_vel = (lv,rv)
             wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,w_k)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
+            print("Wheel Vel: ", wheel_vel)
             # time.sleep(0.1)
-            drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.35,right_cov = 0.35)
+            drive_meas = measure.Drive(wheel_vel[0]*2*self.driveCorrFac,wheel_vel[1]*2*self.driveCorrFac,dt=delta_time,left_cov = 0.001,right_cov = 0.001)
             self.operate.take_pic()
             
             self.operate.update_slam(drive_meas)
@@ -256,6 +261,33 @@ class Controller:
 
         return robot_pose
 
+    def calibrate(self,robot_pose):
+        startTime = time.time()
+        v_k = 0.08
+        w_k = 0
+        delta_time = 0.1
+        delLoopTime = 0
+        while True:
+            corrFac = float(input("CorrFac: "))
+            startTime = time.time()
+            delLoopTime = 0
+
+            self.setup_ekf(self.lms)
+
+            while (delLoopTime < 4):
+                wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,w_k)
+                print("Wheel Vel: ", wheel_vel)
+                self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
+                # time.sleep(0.1)
+                drive_meas = measure.Drive(wheel_vel[0]*2*corrFac,wheel_vel[1]*2*corrFac,dt=delta_time,left_cov = 0.1,right_cov = 0.1)
+                self.operate.take_pic()
+                    
+                self.operate.update_slam(drive_meas)
+                last_state = robot_pose
+                robot_pose = self.operate.ekf.robot.state
+
+                print("Pose: ",robot_pose)
+                delLoopTime = time.time() - startTime
 
     def turn_to_point(self,waypoint,robot_pose):
         initial_state = robot_pose
@@ -289,8 +321,8 @@ class Controller:
            # print("Wheel Vel:")
             print(wheel_vel)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
-            time.sleep(0.1)
-            drive_meas = measure.Drive(wheel_vel[0],wheel_vel[1],dt=delta_time,left_cov = 0.2,right_cov = 0.2)
+           #time.sleep(0.1)
+            drive_meas = measure.Drive(wheel_vel[0]*2,wheel_vel[1]*2,dt=delta_time,left_cov = 0.1,right_cov = 0.1)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
             robot_pose = self.operate.ekf.robot.state
@@ -327,7 +359,7 @@ class Controller:
         while (deltaTime < self.spin_time):
             print("spinning")
             lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=20,time=dt)
-            drive_meas = measure.Drive(lv*2,rv*2,dt=dt,left_cov = 0.1,right_cov = 0.1)
+            drive_meas = measure.Drive(lv*2,rv*2,dt=dt,left_cov = 0.06,right_cov = 0.06)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)
             robot_pose = self.operate.ekf.robot.state

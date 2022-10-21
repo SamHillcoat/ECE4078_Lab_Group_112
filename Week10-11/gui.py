@@ -127,6 +127,8 @@ class Game:
                 x = round(usr_dict["map"][0][i] / self.scale, 1) 
                 y = round(usr_dict["map"][1][i] / self.scale, 1)
                 aruco_dict[tag] = np.reshape([x,y], (2,1))
+                lm = measure.Marker(np.array([x, y]), tag, covariance=0)
+                self.lm_measure.append(lm)
 
         self.slam_markers = aruco_dict
         
@@ -295,10 +297,12 @@ class Game:
         self.read_slam_markers()
         self.read_slam_fruit()
         self.read_search_list()
+
+        self.controller.lms = self.lm_measure
         
         self.current_fruit = self.search_list[0]
 
-        with open('baseline.txt', 'r') as f:
+        with open('calibration/param/baseline.txt', 'r') as f:
             self.baseline = np.loadtxt(f, delimiter=',')
         print('Baseline: ', self.baseline)
 
@@ -352,6 +356,8 @@ class Game:
                             self.plan_paths()
                     if event.key == pygame.K_s:
                         self.controller.full_spin()
+                    if event.key == pygame.K_c:
+                        self.controller.calibrate(robot_pose=[0,0,0])
 
 
     '''
