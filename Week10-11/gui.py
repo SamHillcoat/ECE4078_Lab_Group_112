@@ -1,3 +1,4 @@
+import posix
 import pygame
 import time
 import numpy as np
@@ -302,6 +303,14 @@ class Game:
         
         self.current_fruit = self.search_list[0]
 
+        aruco_pos_list = list(self.slam_markers.values())
+
+        arr = np.array(aruco_pos_list).reshape(10,2)
+        print(arr)
+        print(np.indices(arr.shape, sparse=True))
+        self.controller.marker_pos_arr = np.array(aruco_pos_list).reshape(10,2)
+
+
         with open('calibration/param/baseline.txt', 'r') as f:
             self.baseline = np.loadtxt(f, delimiter=',')
         print('Baseline: ', self.baseline)
@@ -366,6 +375,7 @@ class Game:
 
     def relative_point(self):
         self.rel_pos = []
+        self.true_pos = []
         for key in self.search_list:
             pos = self.slam_fruits[key+'s'][0]
             print(key,pos)
@@ -375,6 +385,10 @@ class Game:
             y_t = t * pos[1]
             conv_pos = self.convert_to_pygame((x_t, y_t))
             self.rel_pos.append((x_t, y_t))
+            self.true_pos.append(pos)
+
+            # Test with true fruit pos as rel point
+            #self.rel_pos.append(pos)
             pygame.draw.circle(self.canvas, (0,0,0), conv_pos, 5)
 
 
@@ -385,11 +399,11 @@ class Game:
             marker = self.slam_markers[key]
             width = self.marker_size + self.baseline
             # self.all_obstacles.append(Rectangle([marker[0] - width/2, marker[1]-width/2], width, width))
-            self.all_obstacles.append(Circle(marker[0], marker[1], width/2))
+            self.all_obstacles.append(Circle(marker[0], marker[1], width/2 +self.tolerance))
         for key in self.slam_fruits:
             for fruit in self.slam_fruits[key]:
                 width = 0.09 + self.baseline
-                self.all_obstacles.append(Circle(fruit[0], fruit[1], width/2))
+                self.all_obstacles.append(Circle(fruit[0], fruit[1], width/2 + self.tolerance))
 
 
     def generate_path(self, start, end):
@@ -424,11 +438,12 @@ class Game:
 
     def plan_to_next(self,robot_pose):
         current_fruit = self.current_fruit
-        current_fruit_index = self.fruit_list.index(current_fruit)
+        current_fruit_index = self.search_list.index(current_fruit)
         self.current_fruit_pos = self.rel_pos[current_fruit_index]
-        self.current_fruit_true_pos = self.fruit_true_pos[current_fruit_index]
+        self.current_fruit_true_pos = self.true_pos[current_fruit_index]
         #print('start pos: ', robot_pose)
         
+        print('goal pos; ', self.current_fruit_pos)
         
         if(self.planning_init_flag):
             path,dist = self.generate_path((0,0),self.current_fruit_pos)
@@ -462,8 +477,9 @@ class Game:
             
             try:
                 path,dist = self.plan_to_next(robot_pose)
-            except:
+            except Exception as e:
                 print("No path found")
+                print(e)
             
 
             # For checking for a backwards path
@@ -472,13 +488,12 @@ class Game:
             else:
                 flat_pose = [0,0]
 
-            print('flat',flat_pose)
             if ((path is not None) and (not np.allclose(path[0],flat_pose))):
-                print("Path Reversed",path[0],robot_pose[0:2])
+                print("Path Reversed")
                 path.reverse()
                 
 
-            if (dist <= min_dist):
+            if ((dist is not None) and (dist <= min_dist)):
                 min_dist = dist
                # self.paths = []
                 best_path = path

@@ -38,9 +38,12 @@ class Controller:
         self.level = level
         self.lms = None
 
+        self.marker_pos_arr = None
+
+
         self.new_path = False
         # P gains (MAYBE CHANGE FOR REAL ROBOT)
-        self.turnK = 0.4 #angular gain in turn loop
+        self.turnK = 0.45 #angular gain in turn loop
         self.driveKv = 0.6 #linear
         self.driveKw = 0 #angular gain while in drive loop(want to be very low)
 
@@ -54,7 +57,9 @@ class Controller:
         self.heading_correct_ang_thresh = 0.4
         self.heading_correct_dist_thresh = 0.25
 
-        self.spin_time = 7.5 # Based on calibration values, time taken to do a full 360 in sec
+        self.marker_stop_thresh = 0.12
+
+        self.spin_time = 8 # Based on calibration values, time taken to do a full 360 in sec
 
         #Turn loop heading error threshold
         self.threshold_angle = 0.08
@@ -183,7 +188,7 @@ class Controller:
             # wheel_vel = (lv,rv)
             wheel_vel = self.operate.ekf.robot.convert_to_wheel_v(v_k,w_k)
             self.operate.pibot.set_velocity(wheel_vel=wheel_vel, time=delta_time)
-            print("Wheel Vel: ", wheel_vel)
+            #print("Wheel Vel: ", wheel_vel)
             # time.sleep(0.1)
             drive_meas = measure.Drive(wheel_vel[0]*2*self.driveCorrFac,wheel_vel[1]*2*self.driveCorrFac,dt=delta_time,left_cov = 0.001,right_cov = 0.001)
             self.operate.take_pic()
@@ -241,6 +246,12 @@ class Controller:
             #if heading error too high, stop and correct
             if ((not stop_criteria_met) and (abs(desired_heading_error) > self.heading_correct_ang_thresh) and (distance_to_goal > self.heading_correct_dist_thresh)):
                 robot_pose = self.turn_to_point(waypoint,new_state)
+
+            #check if we are too close to a marker, fi so stop and replan
+            if (self.check_marker_dist(robot_pose)):
+                print("Close to Marker")
+                self.new_path = True
+                stop_criteria_met = True
 
 
             # If distance to waypoint is increasing, stop loop
@@ -370,6 +381,19 @@ class Controller:
             deltaTime = time.time() - startTime
 
         return robot_pose
+
+    def check_marker_dist(self,robot_pose):
+        '''Returns True if robot is within a threshold distance of any aruco'''
+        pos_arr = self.marker_pos_arr
+        robot_pose = robot_pose[0:2].reshape(2,)
+        print(robot_pose)
+        dist_arr = np.linalg.norm(pos_arr - robot_pose,axis=1)
+        
+        print(dist_arr)
+        if (np.any(dist_arr < self.marker_stop_thresh)):
+            return True
+        else:
+            return False
 
 
     def get_distance_robot_to_goal(self,robot_pose, goal=np.zeros(2)):
