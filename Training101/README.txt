@@ -41,3 +41,6 @@ Wait for final weights to be generated
 
 
 Good luck!
+
+
+Refer to https://medium.com/@anirudh.s.chakravarthy/training-yolov3-on-your-custom-dataset-19a1abbdaf09 if confused
