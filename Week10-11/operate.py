@@ -271,29 +271,29 @@ class Operate:
         for i in self.search_list:
             n[i] = 1
 
-        if len(apple_est) > n["apple"]:
+        if len(apple_est) > 0:
             apple_est_sort = np.sort(apple_est).reshape(-1, 2)
             apple_est = []
             kmeans = KMeans(n_clusters=n["apple"], random_state=0).fit(apple_est_sort)
             apple_est.append(kmeans.cluster_centers_)
 
-        if len(lemon_est) > n["lemon"]:
+        if len(lemon_est) > 0:
             lemon_est_sort = np.sort(lemon_est).reshape(-1, 2)
             lemon_est = []
             kmeans = KMeans(n_clusters=n["lemon"], random_state=0).fit(lemon_est_sort)
             lemon_est.append(kmeans.cluster_centers_)
 
-        if len(pear_est) > n["pear"]:
+        if len(pear_est) > 0:
             pear_est_sort = np.sort(pear_est).reshape(-1, 2)
             pear_est = []
             kmeans = KMeans(n_clusters=n["pear"], random_state=0).fit(pear_est_sort)
             pear_est.append(kmeans.cluster_centers_)
-        if len(orange_est) > n["orange"]:
+        if len(orange_est) > 0:
             orange_est_sort = np.sort(orange_est).reshape(-1, 2)
             orange_est = []
             kmeans = KMeans(n_clusters=n["orange"], random_state=0).fit(orange_est_sort)
             orange_est.append(kmeans.cluster_centers_)
-        if len(strawberry_est) > n["strawberry"]:
+        if len(strawberry_est) > 0:
             strawberry_est_sort = np.sort(strawberry_est).reshape(-1, 2)
             strawberry_est = []
             kmeans = KMeans(n_clusters=n["strawberry"], random_state=0).fit(strawberry_est_sort)
@@ -324,7 +324,7 @@ class Operate:
 
         with open('targets.txt', 'w') as fo:
             json.dump(target_est, fo)
-
+        print(target_est,)
         print('Estimations saved!')
 
     @staticmethod
@@ -366,11 +366,15 @@ class Operate:
                 self.command['save_image'] = True
             # run target_pose est
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_t:
-                self.command['save_image'] = True
                 robot_pose = self.ekf.robot.state
                 guesses = fruit_detection(robot_pose)
-                for i in guesses:
-                    self.fruit_poses[i[0]].append([i[1], i[2]])
+                if guesses == None:
+                    print('No detections')
+                else:
+                    for i in guesses:
+                        #print(i)
+                        self.fruit_poses[i[0]].append([i[1], i[2]])
+                        print(self.fruit_poses)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
                 self.merge_estimations()
             # save SLAM map

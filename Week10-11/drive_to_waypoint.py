@@ -38,7 +38,8 @@ class Controller:
         self.level = level
         self.lms = None
 
-        self.marker_pos_arr = None
+        self.obst_pos_arr = None
+    
 
 
         self.new_path = False
@@ -238,9 +239,10 @@ class Controller:
 
             if self.fruit_pos is not None:
                 dist_to_fruit = self.get_distance_robot_to_goal(robot_pose,self.fruit_pos)
-                if(dist_to_fruit < 0.4):
+                if(dist_to_fruit < 0.25):
                     stop_criteria_met = True
                     print("breaking: at fruit ---------------------------------\n")
+                    time.sleep(3)
                     break
 
             #if heading error too high, stop and correct
@@ -384,7 +386,7 @@ class Controller:
 
     def check_marker_dist(self,robot_pose):
         '''Returns True if robot is within a threshold distance of any aruco'''
-        pos_arr = self.marker_pos_arr
+        pos_arr = self.obst_pos_arr
         robot_pose = robot_pose[0:2].reshape(2,)
         print(robot_pose)
         dist_arr = np.linalg.norm(pos_arr - robot_pose,axis=1)

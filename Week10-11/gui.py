@@ -305,10 +305,19 @@ class Game:
 
         aruco_pos_list = list(self.slam_markers.values())
 
-        arr = np.array(aruco_pos_list).reshape(10,2)
-        print(arr)
-        print(np.indices(arr.shape, sparse=True))
-        self.controller.marker_pos_arr = np.array(aruco_pos_list).reshape(10,2)
+        marker_arr = np.array(aruco_pos_list).reshape(10,2)
+
+
+        fruit_arr = list(self.slam_fruits.values())
+      #  fruit_arr = np.where(fruit_arr.shape >=2)
+        fruit_obst_arr = np.array([f for f in fruit_arr if len(f) >= 2]).reshape(-1,2)
+        print(fruit_obst_arr.shape)
+        print(marker_arr.shape)
+
+
+        
+        self.controller.obst_pos_arr = np.concatenate((fruit_obst_arr,marker_arr),axis=0)
+        print(self.controller.obst_pos_arr)
 
 
         with open('calibration/param/baseline.txt', 'r') as f:

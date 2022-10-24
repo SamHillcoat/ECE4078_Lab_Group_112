@@ -111,9 +111,20 @@ def fruit_detection(robot_pose):
 
     # estimate pose of targets in each detector output
     image_path = 'pibot_dataset/img_0.png'
-
+   # fig = plt.figure()
     estimates = []
-    for detections in get_darknet_bbox(image_path):
-        estimates.append(estimate_pose(camera_matrix, detections, robot_pose, maptype=args.type))
+    detections = get_darknet_bbox(image_path)
+    if detections == "No detections":
+        return None
+    else:
+        for detection in detections:
+            pose = estimate_pose(camera_matrix, detection, robot_pose, maptype=args.type)
+            print(f'Fruit: {pose[0]}, X: {pose[2]}, Y: {pose[1]}')
+            accept_reject = input("Nice Job! You detected a fruit! Is it in the right spot though? Y/N")
+            if accept_reject.lower() == "y":
+                estimates.append(estimate_pose(camera_matrix, detection, robot_pose, maptype=args.type))
+                print("The fruit has been saved, absolute POGGERS!!!")
+            elif accept_reject.lower() == "n":
+                print("Poopoo estimate has gone bye-bye, maybe try being good lol")
 
-    return(estimates)
+        return(estimates)
