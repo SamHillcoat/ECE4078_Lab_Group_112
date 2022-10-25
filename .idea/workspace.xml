@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="yolo5">
+    <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="yolo5 for robot">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Week08-09/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week08-09/yolov3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/yolov3.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week10-11_robot/yolov3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week10-11_robot/yolov3.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,7 +181,21 @@
       <option name="project" value="LOCAL" />
       <updated>1666681253584</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="yolo5">
+      <created>1666682326294</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1666682326294</updated>
+    </task>
+    <task id="LOCAL-00020" summary="yolo5 for robot">
+      <created>1666682512936</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1666682512936</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -203,6 +215,7 @@
     <MESSAGE value="typo fixed" />
     <MESSAGE value="adding try except for yolo detection" />
     <MESSAGE value="yolo5" />
-    <option name="LAST_COMMIT_MESSAGE" value="yolo5" />
+    <MESSAGE value="yolo5 for robot" />
+    <option name="LAST_COMMIT_MESSAGE" value="yolo5 for robot" />
   </component>
 </project>
