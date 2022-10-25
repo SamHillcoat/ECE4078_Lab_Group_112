@@ -10,7 +10,7 @@ img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/lemon
 results = model(img)
 # Results
 detections= results.xyxy[0].numpy()
-
+print(numpy.shape(detections)[0])
 bounding_boxes = []
 for i in range(numpy.shape(detections)[0]):
     print(numpy.shape(detections)[0])
