@@ -5,7 +5,7 @@ import numpy
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # local model#print(model)
 
 
-if not hasattr(ckpt, 'stride'):
+if not hasattr(model, 'stride'):
     print("No stride")
 if hasattr(model, 'names') and isinstance(model.names, (list,tuple)):
     print("names")
