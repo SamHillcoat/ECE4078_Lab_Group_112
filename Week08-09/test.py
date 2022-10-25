@@ -22,7 +22,7 @@ for i in range(numpy.shape(detections)[0]):
     ymax = detections[i][3]
     width= xmax- xmin
     height= ymax- ymin
-    if detections[i][4]>0.4:
+    if detections[i][4]>0.1:
         if label == 0:
             name= 'apple'
             bb_label = [name, xmin, ymin, width, height]
