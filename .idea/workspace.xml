@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="yolo5 for robot" />
+    <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="yolo5 for robot">
+      <change beforePath="$PROJECT_DIR$/Week10-11_robot/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week10-11_robot/test.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -347,7 +349,14 @@
       <option name="project" value="LOCAL" />
       <updated>1666694753617</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="yolo5 for robot">
+      <created>1666694847745</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1666694847745</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

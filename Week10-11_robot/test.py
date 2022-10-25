@@ -2,7 +2,7 @@ import torch
 import numpy
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # local model#print(model)
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5_weights.pt')  # local model#print(model)
 
 
 if not hasattr(model, 'stride'):
