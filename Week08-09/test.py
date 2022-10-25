@@ -9,3 +9,4 @@ results = model(img)
 # Results
 results.print()
 results.show()
+print(results.xyxy[0])
