@@ -31,10 +31,10 @@ for i in range(numpy.shape(detections)[0]):
     width= xmax- xmin
     height= ymax- ymin
     if detections[i][4]>0.1:
-        if label == 0:
+        if label == 1:
             name= 'apple'
             bb_label = [name, xmin, ymin, width, height]
-        elif label == 1:
+        elif label == 0:
             name= 'lemon'
             bb_label = [name, xmin, ymin, width, height]
         elif label == 2:
