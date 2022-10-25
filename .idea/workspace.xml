@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="typo fixed">
+    <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="adding try except for yolo detection">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Week08-09/operate.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/operate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week08-09/result.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/result.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week08-09/test_yolo.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/test_yolo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Week08-09/yolov3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/yolov3.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -77,7 +78,14 @@
       <option name="project" value="LOCAL" />
       <updated>1666094839936</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="adding try except for yolo detection">
+      <created>1666140005767</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1666140005767</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -95,6 +103,7 @@
     <MESSAGE value="merge estimations" />
     <MESSAGE value="changing teleoperating stuff" />
     <MESSAGE value="typo fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="typo fixed" />
+    <MESSAGE value="adding try except for yolo detection" />
+    <option name="LAST_COMMIT_MESSAGE" value="adding try except for yolo detection" />
   </component>
 </project>
