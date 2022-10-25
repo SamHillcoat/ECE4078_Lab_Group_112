@@ -8,4 +8,4 @@ img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test1
 results = model(img)
 # Results
 results.print()
-results.save()  # or .show()
+results.show()
