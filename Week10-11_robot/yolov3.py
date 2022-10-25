@@ -53,7 +53,7 @@ def get_darknet_bbox(image_path):
 #FOR ROBOT
 def get_pytorch_bbox(image_path):
     # Model
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # local model
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path='best.pt')  # local model
     # Images
     img = image_path  # image path
     # Inference

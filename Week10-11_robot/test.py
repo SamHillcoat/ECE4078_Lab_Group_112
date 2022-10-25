@@ -4,13 +4,6 @@ import numpy
 # Model
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='best.pt')  # local model#print(model)
 
-
-if not hasattr(model, 'stride'):
-    print("No stride")
-if hasattr(model, 'names') and isinstance(model.names, (list,tuple)):
-    print("names")
-print(model.names)
-
 # Images
 img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test.jpg'  # image path
 # Inference
