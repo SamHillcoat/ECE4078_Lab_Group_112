@@ -21,6 +21,19 @@ for i in range(numpy.shape(detections)[0]):
     width= xmax- xmin
     height= ymax- ymin
 
-    bb_label = [label, xmin, ymin, width, height]
+    if label == 0:
+        name= 'apple'
+    elif label == 1:
+        name= 'lemon'
+    elif label == 2:
+        name= 'orange'
+    elif label == 3:
+        name= 'pear'
+    elif label == 1:
+        name= 'strawberry'
+    else:
+        class= 'none'
+
+    bb_label = [name, xmin, ymin, width, height]
     bounding_boxes.append(bb_label)
 print(bounding_boxes)
