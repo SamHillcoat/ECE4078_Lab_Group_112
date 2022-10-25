@@ -8,6 +8,8 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path='Week10-11_robot/yol
 img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test.jpg'  # image path
 # Inference
 results = model(img)
+results.save()  # or .show()
+
 # Results
 detections= results.xyxy[0].numpy()
 print(numpy.shape(detections)[0])
