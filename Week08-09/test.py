@@ -13,6 +13,8 @@ detections= results.xyxy[0].numpy()
 
 bounding_boxes = []
 for i in range(numpy.shape(detections)[0]):
+    print(numpy.shape(detections)[0])
+    print(i)
     label = detections[i][5]
     xmin = detections[i][0]
     ymin = detections[i][1]
@@ -20,23 +22,23 @@ for i in range(numpy.shape(detections)[0]):
     ymax = detections[i][3]
     width= xmax- xmin
     height= ymax- ymin
-
-    if label == 0:
-        name= 'apple'
-        bb_label = [name, xmin, ymin, width, height]
-    elif label == 1:
-        name= 'lemon'
-        bb_label = [name, xmin, ymin, width, height]
-    elif label == 2:
-        name= 'orange'
-        bb_label = [name, xmin, ymin, width, height]
-    elif label == 3:
-        name= 'pear'
-        bb_label = [name, xmin, ymin, width, height]
-    elif label == 1:
-        name= 'strawberry'
-        bb_label = [name, xmin, ymin, width, height]
-    else:
-        print("none")
-    bounding_boxes.append(bb_label)
+    if detections[i][4]>0.4:
+        if label == 0:
+            name= 'apple'
+            bb_label = [name, xmin, ymin, width, height]
+        elif label == 1:
+            name= 'lemon'
+            bb_label = [name, xmin, ymin, width, height]
+        elif label == 2:
+            name= 'orange'
+            bb_label = [name, xmin, ymin, width, height]
+        elif label == 3:
+            name= 'pear'
+            bb_label = [name, xmin, ymin, width, height]
+        elif label == 1:
+            name= 'strawberry'
+            bb_label = [name, xmin, ymin, width, height]
+        else:
+            print("none")
+        bounding_boxes.append(bb_label)
 print(bounding_boxes)
