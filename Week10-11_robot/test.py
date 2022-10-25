@@ -2,7 +2,7 @@ import torch
 import numpy
 
 # Model
-model = torch.load('Week10-11_robot/yolov5s.pt')  # local model
+model = torch.load('yolov5s.pt')  # local model
 #print(model)
 # Images
 img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test.jpg'  # image path
