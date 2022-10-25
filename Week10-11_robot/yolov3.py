@@ -90,7 +90,7 @@ def get_pytorch_bbox(image_path):
 
 
 
-def estimate_pose(camera_matrix, detections, robot_pose, maptype='sim'):
+def estimate_pose(camera_matrix, detections, robot_pose, maptype='robot'):
     camera_matrix = camera_matrix
     focal_length = camera_matrix[0][0]
     target_dimensions = {'apple': [],
