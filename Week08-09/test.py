@@ -5,7 +5,7 @@ import numpy
 model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # local model
 #print(model)
 # Images
-img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test1.jpg'  # image path
+img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test.jpg'  # image path
 # Inference
 results = model(img)
 # Results
@@ -23,17 +23,20 @@ for i in range(numpy.shape(detections)[0]):
 
     if label == 0:
         name= 'apple'
+        bb_label = [name, xmin, ymin, width, height]
     elif label == 1:
         name= 'lemon'
+        bb_label = [name, xmin, ymin, width, height]
     elif label == 2:
         name= 'orange'
+        bb_label = [name, xmin, ymin, width, height]
     elif label == 3:
         name= 'pear'
+        bb_label = [name, xmin, ymin, width, height]
     elif label == 1:
         name= 'strawberry'
+        bb_label = [name, xmin, ymin, width, height]
     else:
-        name= 'none'
-
-    bb_label = [name, xmin, ymin, width, height]
+        print("none")
     bounding_boxes.append(bb_label)
 print(bounding_boxes)

@@ -7,6 +7,7 @@
     <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="yolo5 for robot">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Week08-09/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week10-11_robot/yolov3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week10-11_robot/yolov3.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -195,7 +196,21 @@
       <option name="project" value="LOCAL" />
       <updated>1666682512936</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="yolo5 for robot">
+      <created>1666687194946</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1666687194946</updated>
+    </task>
+    <task id="LOCAL-00022" summary="yolo5 for robot">
+      <created>1666687313596</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1666687313596</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
