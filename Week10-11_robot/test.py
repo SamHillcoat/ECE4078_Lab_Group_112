@@ -1,9 +1,9 @@
 import torch
 import numpy
-
+import os
 # Model
-model = torch.load('yolov5s.pt')  # local model
-#print(model)
+model_name='yolov5s.pt'
+model = torch.hub.load(os.getcwd(), 'custom', source='local', path = model_name, force_reload = True)
 # Images
 img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test.jpg'  # image path
 # Inference
