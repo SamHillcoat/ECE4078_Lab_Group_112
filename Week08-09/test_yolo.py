@@ -7,10 +7,9 @@ import ast
 import math
 import matplotlib.pyplot as plt
 import PIL
-from sklearn.cluster import KMeans
 
 im_width = 416
-image_path= '/mnt'
+image_path= '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test1.jpg'
 fruit_poses = []
 net = cv.dnn_DetectionModel('yolo-obj.cfg', 'yolo-obj_final.weights')  # change path
 net.setInputSize(416, 416)
@@ -22,6 +21,8 @@ with open('obj.names', 'rt') as f:  # change path
 bounding_boxes = []
 frame = cv.imread(image_path)
 classes, confidences, boxes = net.detect(frame, confThreshold=0.25, nmsThreshold=0.4)
+print(len(classes))
+print(confidences)
 if len(classes) == 0:
     print("No detections")
 else:
@@ -39,6 +40,6 @@ else:
         bb_label = [names[classId], left, top, width, height]
         bounding_boxes.append(bb_label)
 
-    # cv.imshow('out', frame)
-    # cv.imwrite('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/result.jpg', frame)
+    cv.imshow('out', frame)
+    cv.imwrite('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/result.jpg', frame)
     print(bounding_boxes)

@@ -51,14 +51,14 @@ class Controller:
         self.driveCorrFac = 1.25 # correction factor applied to slam predict wheel vel determined using calibration func
 
         #For Robot
-        #self.turnK = 2
-       # self.driveKv = 2 #linear
+        #self.turnK = 1.5
+        #self.driveKv = 5 #linear
         #self.driveKw = 0.1 #angular gain while in drive loop(want to be very low)
         
         self.heading_correct_ang_thresh = 0.4
         self.heading_correct_dist_thresh = 0.25
 
-        self.marker_stop_thresh = 0.12
+        self.marker_stop_thresh = 0.05
 
         self.spin_time = 8 # Based on calibration values, time taken to do a full 360 in sec
 
@@ -74,7 +74,7 @@ class Controller:
         self.debug = False
         self.level = level
         #Real
-        #self.turnK = 1
+        # self.turnK = 1
       #  self.driveKv = 0.7
        # self.driveKw = 0.02
         
@@ -371,7 +371,7 @@ class Controller:
         deltaTime = 0
         while (deltaTime < self.spin_time):
             print("spinning")
-            lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=20,time=dt)
+            lv,rv = self.operate.pibot.set_velocity([0,1],turning_tick=10,time=dt)
             drive_meas = measure.Drive(lv*2,rv*2,dt=dt,left_cov = 0.06,right_cov = 0.06)
             self.operate.take_pic()
             self.operate.update_slam(drive_meas)

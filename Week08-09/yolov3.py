@@ -8,11 +8,12 @@ import math
 import matplotlib.pyplot as plt
 import PIL
 from sklearn.cluster import KMeans
+import torch
 
 im_width = 416
 fruit_poses = []
 
-
+#FOR SIM
 def get_darknet_bbox(image_path):
     net = cv.dnn_DetectionModel('yolo-obj.cfg', 'yolo-obj_final.weights')  # change path
     net.setInputSize(416, 416)
@@ -44,6 +45,22 @@ def get_darknet_bbox(image_path):
         # cv.imshow('out', frame)
         # cv.imwrite('/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/result.jpg', frame)
         return bounding_boxes
+
+
+#FOR ROBOT
+def get_pytorch_bbox(image_path):
+    # Model
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path='path/to/best.pt')
+    # Images
+    img = image_path  # image path
+    # Inference
+    results = model(img)
+    # Results
+    results.print()
+    results.save()  # or .show()
+
+    #results.xyxy[0]  # img1 predictions (tensor)
+    #results.pandas().xyxy[0]  # img1 predictions (pandas)
 
 
 def estimate_pose(camera_matrix, detections, robot_pose, maptype='sim'):

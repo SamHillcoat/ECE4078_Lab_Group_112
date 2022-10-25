@@ -459,6 +459,7 @@ class Game:
             
         else:
             robot_pose = [i.item() for i in robot_pose]
+            print("here")
             path,dist = self.generate_path(robot_pose[0:2],self.current_fruit_pos)
 
        
