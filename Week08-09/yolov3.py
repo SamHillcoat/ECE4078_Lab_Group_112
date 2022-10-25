@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import PIL
 from sklearn.cluster import KMeans
 import torch
-
 im_width = 416
 fruit_poses = []
 
@@ -50,18 +49,41 @@ def get_darknet_bbox(image_path):
 #FOR ROBOT
 def get_pytorch_bbox(image_path):
     # Model
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path='path/to/best.pt')
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolo5s.pt')  # local model
+    # print(model)
     # Images
     img = image_path  # image path
     # Inference
     results = model(img)
     # Results
-    results.print()
-    results.save()  # or .show()
+    detections = results.xyxy[0].numpy()
 
-    #results.xyxy[0]  # img1 predictions (tensor)
-    #results.pandas().xyxy[0]  # img1 predictions (pandas)
+    bounding_boxes = []
+    for i in range(np.shape(detections)[0]):
+        label = detections[i][5]
+        xmin = detections[i][0]
+        ymin = detections[i][1]
+        xmax = detections[i][2]
+        ymax = detections[i][3]
+        width = xmax - xmin
+        height = ymax - ymin
 
+        if label == 0:
+            name = 'apple'
+        elif label == 1:
+            name = 'lemon'
+        elif label == 2:
+            name = 'orange'
+        elif label == 3:
+            name = 'pear'
+        elif label == 1:
+            name = 'strawberry'
+        else:
+            name = 'none'
+
+        bb_label = [name, xmin, ymin, width, height]
+        bounding_boxes.append(bb_label)
+    return bounding_boxes
 
 def estimate_pose(camera_matrix, detections, robot_pose, maptype='sim'):
     camera_matrix = camera_matrix

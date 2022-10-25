@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58cec024-f64d-46b1-897e-bbf08184ec3e" name="Changes" comment="yolo5">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Week08-09/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week08-09/yolov3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week08-09/yolov3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Week10-11_robot/yolov3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Week10-11_robot/yolov3.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -117,7 +120,70 @@
       <option name="project" value="LOCAL" />
       <updated>1666678932132</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="yolo5">
+      <created>1666679045302</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1666679045302</updated>
+    </task>
+    <task id="LOCAL-00011" summary="yolo5">
+      <created>1666679492888</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1666679492888</updated>
+    </task>
+    <task id="LOCAL-00012" summary="yolo5">
+      <created>1666679604964</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1666679604964</updated>
+    </task>
+    <task id="LOCAL-00013" summary="yolo5">
+      <created>1666679649459</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1666679649459</updated>
+    </task>
+    <task id="LOCAL-00014" summary="yolo5">
+      <created>1666679699503</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1666679699503</updated>
+    </task>
+    <task id="LOCAL-00015" summary="yolo5">
+      <created>1666680603656</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1666680603656</updated>
+    </task>
+    <task id="LOCAL-00016" summary="yolo5">
+      <created>1666680762570</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1666680762570</updated>
+    </task>
+    <task id="LOCAL-00017" summary="yolo5">
+      <created>1666681207073</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1666681207073</updated>
+    </task>
+    <task id="LOCAL-00018" summary="yolo5">
+      <created>1666681253584</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1666681253584</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
