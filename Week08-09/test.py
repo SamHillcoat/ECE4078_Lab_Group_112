@@ -12,7 +12,7 @@ results = model(img)
 detections= results.xyxy[0].numpy()
 
 bounding_boxes = []
-for i in numpy.shape(detections)[0]:
+for i in range(numpy.shape(detections)[0]):
     label = detections[i][5]
     xmin = detections[i][0]
     ymin = detections[i][1]
