@@ -3,7 +3,7 @@ import numpy
 
 # Model
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-print(model)
+#print(model)
 # Images
 img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test1.jpg'  # image path
 # Inference
@@ -32,7 +32,7 @@ for i in range(numpy.shape(detections)[0]):
     elif label == 1:
         name= 'strawberry'
     else:
-        class= 'none'
+        name= 'none'
 
     bb_label = [name, xmin, ymin, width, height]
     bounding_boxes.append(bb_label)
