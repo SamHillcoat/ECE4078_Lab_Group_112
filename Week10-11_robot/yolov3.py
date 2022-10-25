@@ -80,11 +80,11 @@ def get_pytorch_bbox(image_path):
             name = 'orange'
         elif label == 3:
             name = 'pear'
-        elif label == 1:
+        elif label == 4:
             name = 'strawberry'
         else:
-            name = 'none'
             print("NO DETECTIONS")
+            return None
 
         bb_label = [name, xmin, ymin, width, height]
         bounding_boxes.append(bb_label)
