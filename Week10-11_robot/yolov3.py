@@ -70,22 +70,22 @@ def get_pytorch_bbox(image_path):
         ymax = detections[i][3]
         width = xmax - xmin
         height = ymax - ymin
+        if detections[i][4]>0.4:
+            if label == 0:
+                bb_label = ['apple', xmin, ymin, width, height]
+            elif label == 1:
+                bb_label = ['lemon', xmin, ymin, width, height]
+            elif label == 2:
+                bb_label = ['orange', xmin, ymin, width, height]
+            elif label == 3:
+                bb_label = ['pear', xmin, ymin, width, height]
+            elif label == 4:
+                bb_label = ['strawberry', xmin, ymin, width, height]
+            else:
+                print("NO DETECTIONS")
+                return None
 
-        if label == 0:
-            bb_label = ['apple', xmin, ymin, width, height]
-        elif label == 1:
-            bb_label = ['lemon', xmin, ymin, width, height]
-        elif label == 2:
-            bb_label = ['orange', xmin, ymin, width, height]
-        elif label == 3:
-            bb_label = ['pear', xmin, ymin, width, height]
-        elif label == 4:
-            bb_label = ['strawberry', xmin, ymin, width, height]
-        else:
-            print("NO DETECTIONS")
-            return None
-
-        bounding_boxes.append(bb_label)
+            bounding_boxes.append(bb_label)
     return bounding_boxes
 
 
