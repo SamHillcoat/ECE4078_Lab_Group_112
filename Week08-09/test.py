@@ -1,5 +1,6 @@
 import torch
-import numpy as np
+import numpy
+
 # Model
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 print(model)
@@ -10,4 +11,4 @@ results = model(img)
 # Results
 #results.print()
 #results.show()
-print(results.xyxy[0].np())
+print(results.xyxy[0].numpy())
