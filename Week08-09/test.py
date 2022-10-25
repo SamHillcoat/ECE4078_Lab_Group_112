@@ -9,6 +9,18 @@ img = '/mnt/c/Users/prakr/Documents/GitHub/ECE4078_Lab_Group_112/Week08-09/test1
 # Inference
 results = model(img)
 # Results
-#results.print()
-#results.show()
-print(results.xyxy[0].numpy())
+detections= results.xyxy[0].numpy()
+
+bounding_boxes = []
+for i in numpy.shape(detections)[0]:
+    label = detections[i][5]
+    xmin = detections[i][0]
+    ymin = detections[i][1]
+    xmax = detections[i][2]
+    ymax = detections[i][3]
+    width= xmax- xmin
+    height= ymax- ymin
+
+    bb_label = [label, xmin, ymin, width, height]
+    bounding_boxes.append(bb_label)
+print(bounding_boxes)
